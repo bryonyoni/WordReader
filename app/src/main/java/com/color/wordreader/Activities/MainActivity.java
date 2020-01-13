@@ -3,6 +3,8 @@ package com.color.wordreader.Activities;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import android.Manifest;
 import android.content.ContentResolver;
@@ -22,14 +24,18 @@ import android.os.ParcelFileDescriptor;
 import android.provider.DocumentsContract;
 import android.provider.MediaStore;
 import android.util.Log;
+import android.view.View;
 import android.webkit.MimeTypeMap;
+import android.widget.GridLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.color.wordreader.Adapters.MyBooksRecyclerAdapter;
 import com.color.wordreader.Models.Book;
 import com.color.wordreader.Models.Word;
 import com.color.wordreader.R;
+import com.color.wordreader.Services.DatabaseManager;
 import com.itextpdf.text.pdf.PdfReader;
 import com.itextpdf.text.pdf.parser.PdfTextExtractor;
 
@@ -37,18 +43,30 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity {
+import butterknife.Bind;
+import butterknife.ButterKnife;
+
+public class MainActivity extends AppCompatActivity implements View.OnClickListener{
     private int PICK_IMAGE = 6969;
     private int PICK_PDF = 1234;
     private Context mContext;
+    private List<Book> allMyBooks = new ArrayList<>();
+    @Bind(R.id.openFilesImageView) ImageView openFilesImageView;
+    @Bind(R.id.shareAppImageView) ImageView shareAppImageView;
+    @Bind(R.id.myBooksRecyclerView) RecyclerView myBooksRecyclerView;
+    private MyBooksRecyclerAdapter myBooksRecyclerAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         mContext = this.getApplicationContext();
-        loadFile();
-//        fn_permission();
+        ButterKnife.bind(this);
+        openFilesImageView.setOnClickListener(this);
+        shareAppImageView.setOnClickListener(this);
+
+        allMyBooks = new DatabaseManager(mContext).loadAllStoredBooks();
+        loadAllBooksIntoRecyclerView();
     }
 
 
@@ -127,6 +145,10 @@ public class MainActivity extends AppCompatActivity {
         Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
         intent.setType("application/pdf");
         startActivityForResult(Intent.createChooser(intent,"Select PDF"), PICK_PDF);
+
+        allTheWordsForLoadedBook.clear();
+        currentWord = "";
+        mFilepath = null;
     }
 
     @Override
@@ -137,9 +159,6 @@ public class MainActivity extends AppCompatActivity {
                 mFilepath = data.getData();
 
                 try {
-                    TextView text = findViewById(R.id.text);
-                    text.setText("Loading");
-
                     String selectedImagePath = getPath(mContext, mFilepath);
                     Log.e("MainActivity", "" + selectedImagePath);
 
@@ -286,8 +305,18 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    @Override
+    public void onClick(View view) {
+        if(view.equals(openFilesImageView)){
+            loadFile();
+        }else if(view.equals(shareAppImageView)){
+
+        }
+    }
+
     private class loadSelectedPdfTask extends AsyncTask<String, Void, String> {
         private String pdfBookData;
+        private String pdfBookName;
         private String selectedImagePath;
         private Bitmap bookImage;
 
@@ -298,6 +327,11 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         protected String doInBackground(String... strings) {
+            if(selectedImagePath.contains(".pdf")){
+                pdfBookName = selectedImagePath.substring(selectedImagePath.lastIndexOf("/")+1,selectedImagePath.lastIndexOf(".pdf"));
+            }else{
+                pdfBookName = selectedImagePath.substring(selectedImagePath.lastIndexOf("/")+1);
+            }
             File pdfFile = new File(selectedImagePath);
             bookImage = pdfToBitmap(pdfFile);
             pdfBookData = getTextFromFile(selectedImagePath);
@@ -310,9 +344,10 @@ public class MainActivity extends AppCompatActivity {
             Book newBook = new Book();
             newBook.setSentenceWords(allTheWordsForLoadedBook);
             newBook.setBookUrl(pdfBookData);
+            newBook.setBookName(pdfBookName);
+            newBook.setBookCover(bookImage);
 
-            ImageView image = findViewById(R.id.image);
-            image.setImageBitmap(bookImage);
+            addBookToArrayListAndRecyclerView(newBook);
         }
 
     }
@@ -344,7 +379,6 @@ public class MainActivity extends AppCompatActivity {
         Log.e("MainActivity", "We've got: "+ allTheWordsForLoadedBook.size());
     }
 
-
     private  Bitmap pdfToBitmap(File pdfFile) {
         Bitmap bitmap = null;
 
@@ -352,8 +386,8 @@ public class MainActivity extends AppCompatActivity {
             PdfRenderer renderer = new PdfRenderer(ParcelFileDescriptor.open(pdfFile, ParcelFileDescriptor.MODE_READ_ONLY));
             PdfRenderer.Page page = renderer.openPage(0);
 
-            int width = getResources().getDisplayMetrics().densityDpi / 72 * page.getWidth();
-            int height = getResources().getDisplayMetrics().densityDpi / 72 * page.getHeight();
+            int width = 300;
+            int height = 300;
             bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
 
             page.render(bitmap, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY);
@@ -369,6 +403,20 @@ public class MainActivity extends AppCompatActivity {
 
         return bitmap;
 
+    }
+
+
+
+    private void addBookToArrayListAndRecyclerView(Book newBook){
+        allMyBooks.add(newBook);
+        new DatabaseManager(mContext).storeNewBook(newBook);
+        loadAllBooksIntoRecyclerView();
+    }
+
+    private void loadAllBooksIntoRecyclerView(){
+        myBooksRecyclerAdapter = new MyBooksRecyclerAdapter(allMyBooks, MainActivity.this);
+        myBooksRecyclerView.setAdapter(myBooksRecyclerAdapter);
+        myBooksRecyclerView.setLayoutManager(new GridLayoutManager(mContext,2));
     }
 
 

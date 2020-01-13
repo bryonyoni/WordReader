@@ -1,27 +1,22 @@
 package com.color.wordreader.Models;
 
+import android.graphics.Bitmap;
+
 import java.util.ArrayList;
 import java.util.List;
 
 public class Book {
-    private Integer mPos;
     private String mBookName;
     private String mBookUrl;
+    private Bitmap mBookCover;
+    private int mStoragePos;
     private List<Word> mBookWords = new ArrayList<>();
+    private Long mCurrentWordId = 0L;
 
     public Book(){}
 
-    public Book(Integer pos, List<Word> allWords){
-        this.mPos = pos;
+    public Book(List<Word> allWords){
         this.mBookWords = allWords;
-    }
-
-    public Integer getPos() {
-        return mPos;
-    }
-
-    public void setPos(Integer mPos) {
-        this.mPos = mPos;
     }
 
 
@@ -34,6 +29,8 @@ public class Book {
         this.mBookWords = mSentenceWords;
     }
 
+
+
     public String getBookName() {
         return mBookName;
     }
@@ -42,11 +39,46 @@ public class Book {
         this.mBookName = mBookName;
     }
 
+
+
     public String getBookUrl() {
         return mBookUrl;
     }
 
     public void setBookUrl(String mBookUrl) {
         this.mBookUrl = mBookUrl;
+    }
+
+
+
+    public Bitmap getBookCover() {
+        return mBookCover;
+    }
+
+    public void setBookCover(Bitmap mBookCover) {
+        this.mBookCover = mBookCover;
+    }
+
+    public Long getCurrentWordId() {
+        return mCurrentWordId;
+    }
+
+    public void setCurrentWordId(Long mCurrentWordId) {
+        this.mCurrentWordId = mCurrentWordId;
+    }
+
+    public int percentageForCompletion(){
+        if(mCurrentWordId!=0) {
+            return (int)((mCurrentWordId / mBookWords.size()) * 100);
+        }
+        return 0;
+    }
+
+    public int getStoragePos() {
+        return mStoragePos;
+    }
+
+    public void setStoragePos(int mStoragePos) {
+        this.mStoragePos = mStoragePos;
     }
 }
