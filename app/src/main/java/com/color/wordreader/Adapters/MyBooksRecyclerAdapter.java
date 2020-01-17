@@ -2,6 +2,7 @@ package com.color.wordreader.Adapters;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,6 +13,8 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.color.wordreader.Activities.ReaderActivity;
+import com.color.wordreader.Constants;
 import com.color.wordreader.Models.Book;
 import com.color.wordreader.R;
 
@@ -45,6 +48,15 @@ public class MyBooksRecyclerAdapter extends RecyclerView.Adapter<MyBooksRecycler
 
         holder.percentageBarView.setProgress(book.percentageForCompletion());
         holder.percentageTextView.setText(book.percentageForCompletion()+"%");
+
+        holder.bookThumbnailImageView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(mActivity, ReaderActivity.class);
+                intent.putExtra(Constants.BOOK_ID, book.getStoragePos());
+                mActivity.startActivity(intent);
+            }
+        });
     }
 
     @Override

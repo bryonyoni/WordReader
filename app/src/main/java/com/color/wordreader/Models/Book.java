@@ -59,6 +59,7 @@ public class Book {
         this.mBookCover = mBookCover;
     }
 
+
     public Long getCurrentWordId() {
         return mCurrentWordId;
     }
@@ -66,6 +67,7 @@ public class Book {
     public void setCurrentWordId(Long mCurrentWordId) {
         this.mCurrentWordId = mCurrentWordId;
     }
+
 
     public int percentageForCompletion(){
         if(mCurrentWordId!=0) {
@@ -80,5 +82,15 @@ public class Book {
 
     public void setStoragePos(int mStoragePos) {
         this.mStoragePos = mStoragePos;
+    }
+
+
+    public Word getCurrentWord(){
+        return mBookWords.get((int)(long) mCurrentWordId);
+    }
+
+    public Word getNextWordAndUpdatePos(){
+        mCurrentWordId+=1;
+        return mBookWords.get((int)(long) mCurrentWordId);
     }
 }

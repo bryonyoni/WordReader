@@ -2,10 +2,12 @@ package com.color.wordreader.Services;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.util.Base64;
 
+import com.color.wordreader.Constants;
 import com.color.wordreader.Models.Book;
 import com.color.wordreader.Models.Word;
 
@@ -21,10 +23,12 @@ public class DatabaseManager {
     private final String BOOK_WORDS = "BOOK_WORDS";
     private final String BOOK_TITLE = "BOOK_TITLE";
     private final String BOOK_URL = "BOOK_URL";
+    private final String READING_SPEED = "READING_SPEED";
     private final String BOOK_COVER = "BOOK_COVER";
     private final String CURRENT_BOOK_WORD = "CURRENT_BOOK_WORD";
     private final String BOOK_SIZE = "BOOK_SIZE";
     private final String BOOK_POSITION = "BOOK_POSITION";
+    private final String TRANS_POS = "TRANS_POS";
 
     public DatabaseManager(Context context){
         this.mContext = context;
@@ -70,12 +74,67 @@ public class DatabaseManager {
         return allMyBooks;
     }
 
+    public Book loadSpecificBook(int i){
+        SharedPreferences pref = mContext.getSharedPreferences(ALL_BOOKS, MODE_PRIVATE);
+
+        String title = pref.getString(i+BOOK_TITLE,"");
+        String url = pref.getString(i+BOOK_URL,"");
+        Bitmap cover = decodeBitmapFromStorage(pref.getString(i+BOOK_COVER,""));
+        Long currentWord = pref.getLong(i+CURRENT_BOOK_WORD,0);
+        Long size = pref.getLong(i+BOOK_SIZE,0);
+        int position = pref.getInt(i+BOOK_POSITION,i);
+        List<Word> bookWords = new ArrayList<>();
+
+        for(int w = 0; w <=size; w++){
+            String wordString = pref.getString(i+BOOK_WORDS+w,"");
+            if(!wordString.equals("")){
+                Word word = new Word();
+                word.setWord(wordString);
+                bookWords.add(word);
+            }
+        }
+
+        Book loadedBook = new Book();
+        loadedBook.setBookCover(cover);
+        loadedBook.setBookName(title);
+        loadedBook.setBookUrl(url);
+        loadedBook.setCurrentWordId(currentWord);
+        loadedBook.setStoragePos(position);
+        loadedBook.setSentenceWords(bookWords);
+
+        return loadedBook;
+    }
+
     public void updateBookProgress(Book book){
         SharedPreferences pref = mContext.getSharedPreferences(ALL_BOOKS, MODE_PRIVATE);
         SharedPreferences.Editor editor = pref.edit();
         editor.putLong(book.getStoragePos()+CURRENT_BOOK_WORD, book.getCurrentWordId());
         editor.apply();
 
+    }
+
+    public void setReadingSpeed(int speed, int transPos){
+        SharedPreferences pref = mContext.getSharedPreferences(READING_SPEED, MODE_PRIVATE);
+        pref.edit().putInt(READING_SPEED,speed).apply();
+        pref.edit().putInt(TRANS_POS, transPos).apply();
+    }
+
+    public int getReadingSpeed(){
+        SharedPreferences pref = mContext.getSharedPreferences(READING_SPEED, MODE_PRIVATE);
+        int time = pref.getInt(READING_SPEED, Constants.MIN_READING_TIME);
+        if(time < Constants.MIN_READING_TIME || time > Constants.MAX_READING_TIME){
+            return Constants.MIN_READING_TIME;
+        }
+        return pref.getInt(READING_SPEED, Constants.MIN_READING_TIME);
+    }
+
+    public int getTransPos(){
+        SharedPreferences pref = mContext.getSharedPreferences(READING_SPEED, MODE_PRIVATE);
+       int transPos = pref.getInt(TRANS_POS,dpToPx(300));
+       if(transPos < 0 || transPos > dpToPx(300)){
+           return dpToPx(300);
+       }
+        return pref.getInt(TRANS_POS, dpToPx(300));
     }
 
     public void storeNewBook(Book book){
@@ -114,5 +173,10 @@ public class DatabaseManager {
     private Bitmap decodeBitmapFromStorage(String image){
         byte[] decodedByteArray = android.util.Base64.decode(image, Base64.DEFAULT);
         return BitmapFactory.decodeByteArray(decodedByteArray, 0, decodedByteArray.length);
+    }
+
+
+    public static int dpToPx(int dp) {
+        return (int) (dp * Resources.getSystem().getDisplayMetrics().density);
     }
 }

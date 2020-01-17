@@ -60,13 +60,20 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
         mContext = this.getApplicationContext();
         ButterKnife.bind(this);
+
         openFilesImageView.setOnClickListener(this);
         shareAppImageView.setOnClickListener(this);
 
+        loadMyBooks();
+    }
+
+    private void loadMyBooks(){
         allMyBooks = new DatabaseManager(mContext).loadAllStoredBooks();
         loadAllBooksIntoRecyclerView();
+
     }
 
 
