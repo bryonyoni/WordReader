@@ -71,7 +71,7 @@ public class Book {
 
     public int percentageForCompletion(){
         if(mCurrentWordId!=0) {
-            return (int)((mCurrentWordId / mBookWords.size()) * 100);
+            return (int)(((double)mCurrentWordId / (double) mBookWords.size()) * 100);
         }
         return 0;
     }

@@ -19,6 +19,7 @@ import android.widget.TextView;
 
 import com.color.wordreader.Constants;
 import com.color.wordreader.Models.Book;
+import com.color.wordreader.Models.Word;
 import com.color.wordreader.R;
 import com.color.wordreader.Services.DatabaseManager;
 import com.google.android.material.card.MaterialCardView;
@@ -68,6 +69,8 @@ public class ReaderActivity extends AppCompatActivity implements View.OnClickLis
 
         Log.e(TAG, "Gotten Time: "+time);
         Log.e(TAG, "Gotten translation position: "+translationPos);
+        Log.e(TAG,"Book size: "+mViewingBook.getSentenceWords().size());
+        Log.e(TAG, "Current word so far: "+mViewingBook.getCurrentWordId());
 
         setTranslationPos();
         setBooksData();
@@ -196,10 +199,23 @@ public class ReaderActivity extends AppCompatActivity implements View.OnClickLis
         }
     }
 
-
+    wordTimerBackgroundTask w;
     private void startReader(){
-        wordTimerBackgroundTask w = new wordTimerBackgroundTask();
+//        if(w!=null) w.cancel(false);
+        w = new wordTimerBackgroundTask();
         w.execute();
+    }
+
+    private void restartReader(){
+        isPlaying = false;
+
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                isPlaying = true;
+                startReader();
+            }
+        },500);
     }
 
     private int time = 500;
@@ -210,11 +226,16 @@ public class ReaderActivity extends AppCompatActivity implements View.OnClickLis
         protected String doInBackground(String... strings) {
             while (isPlaying) {
                 try {
-                    if(mViewingBook.getCurrentWord().getWord().length()>8){
-                        Thread.sleep(time+200);
-                    }else{
-                        Thread.sleep(time);
+                    String currentWord = mViewingBook.getCurrentWord().getWord();
+                    int sleepPlus = 0;
+                    if(currentWord.length()>12){
+                        sleepPlus = 200;
                     }
+                    if(currentWord.contains(".") || currentWord.contains("-") || currentWord.contains(",")
+                            || currentWord.contains(";")|| currentWord.contains(":")|| currentWord.contains("!")){
+                        sleepPlus = 200;
+                    }
+                    Thread.sleep(time+sleepPlus);
                     publishProgress("");
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -255,21 +276,24 @@ public class ReaderActivity extends AppCompatActivity implements View.OnClickLis
     @Bind(R.id.speedContainerCardView) MaterialCardView speedContainerCardView;
     @Bind(R.id.speedBarView) View speedBarView;
     @Bind(R.id.speedTextView) TextView speedTextView;
-
+    @Bind(R.id.wpmTextView) TextView wpmTextView;
 
     private int prevPos = 0;
     private int y_deltaBoi;
     private boolean isDownSwipingBoi = false;
     private GestureDetector swipeTopGestureDetector;
+    private GestureDetector doubleTapGestureDetector;
+    private  GestureDetector doubleTapNextGestureDetector;
 
     private void setTouchActivator(){
         swipeTopGestureDetector = new GestureDetector(this, new MySwipeBackMainGestureListener());
+        doubleTapGestureDetector = new GestureDetector(this, new DoubleTapGestureListener());
+        doubleTapNextGestureDetector = new GestureDetector(this, new DoubleTapNextGestureListener());
 
         SpeedView.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View view, MotionEvent motionEvent) {
                 if (swipeTopGestureDetector.onTouchEvent(motionEvent)) {
-                    ShowSpeedContainerCardView();
                     return true;
                 }
                 if (motionEvent.getAction() == MotionEvent.ACTION_UP) {
@@ -288,6 +312,20 @@ public class ReaderActivity extends AppCompatActivity implements View.OnClickLis
                 return false;
             }
         });
+
+        restartSentenceView.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View view, MotionEvent motionEvent) {
+                return doubleTapGestureDetector.onTouchEvent(motionEvent);
+            }
+        });
+
+        skipNextSentenceView.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View view, MotionEvent motionEvent) {
+                return doubleTapNextGestureDetector.onTouchEvent(motionEvent);
+            }
+        });
     }
 
     class MySwipeBackMainGestureListener extends GestureDetector.SimpleOnGestureListener {
@@ -299,7 +337,7 @@ public class ReaderActivity extends AppCompatActivity implements View.OnClickLis
             RelativeLayout.LayoutParams lParams = (RelativeLayout.LayoutParams) speedContainerCardView.getLayoutParams();
             y_deltaBoi = Y - lParams.topMargin;
 
-
+            ShowSpeedContainerCardView();
             return true;
         }
 
@@ -373,6 +411,8 @@ public class ReaderActivity extends AppCompatActivity implements View.OnClickLis
         }
         oldIVal = i;
 
+        double wordCount = 60000/time;
+        wpmTextView.setText(String.format("~%d words/min", (int) wordCount));
     }
 
     private void setTranslationPos(){
@@ -380,6 +420,8 @@ public class ReaderActivity extends AppCompatActivity implements View.OnClickLis
         double percentage = ((DatabaseManager.dpToPx(300)-(double)translationPos)/DatabaseManager.dpToPx(300))*100;
         speedTextView.setText((int)percentage+"%");
 
+        double wordCount = 60000/time;
+        wpmTextView.setText(String.format("~%d words/min", (int) wordCount));
     }
 
     private void ShowSpeedContainerCardView(){
@@ -395,6 +437,8 @@ public class ReaderActivity extends AppCompatActivity implements View.OnClickLis
                     public void onAnimationEnd(Animator animator) {
                         speedContainerCardView.setTranslationX(0);
                         speedContainerCardView.setAlpha(1f);
+
+                        wpmTextView.setAlpha(1f);
                     }
 
                     @Override
@@ -407,6 +451,8 @@ public class ReaderActivity extends AppCompatActivity implements View.OnClickLis
 
                     }
                 }).start();
+
+        wpmTextView.animate().alpha(1f).setDuration(mAnimationDuration).start();
     }
 
     private void hideSpeedContainerCardView(){
@@ -422,6 +468,8 @@ public class ReaderActivity extends AppCompatActivity implements View.OnClickLis
                     public void onAnimationEnd(Animator animator) {
                         speedContainerCardView.setTranslationX(DatabaseManager.dpToPx(-70));
                         speedContainerCardView.setAlpha(0f);
+
+                        wpmTextView.setAlpha(0f);
                     }
 
                     @Override
@@ -434,10 +482,264 @@ public class ReaderActivity extends AppCompatActivity implements View.OnClickLis
 
                     }
                 }).start();
+        wpmTextView.animate().alpha(0f).setDuration(mAnimationDuration).start();
+
         new DatabaseManager(mContext).setReadingSpeed(time, translationPos);
         oldIVal = 0;
     }
 
 
+    @Bind(R.id.restartSentenceView) View restartSentenceView;
+    @Bind(R.id.forwardImageView) ImageView forwardImageView;
+    @Bind(R.id.rewindImageView) ImageView rewindImageView;
+    @Bind(R.id.skipNextSentenceView) View skipNextSentenceView;
 
+    private int getStartingPosOfCurrentOrPrevSentence(){
+        for(int i = mViewingBook.getCurrentWordId().intValue(); i>0; i-- ){
+            Word prevWord = mViewingBook.getSentenceWords().get(i-1);
+            if(prevWord.getWord().endsWith(".")){
+                //its a last word of sentence
+                if(mViewingBook.getCurrentWordId().intValue()-1 != i){
+                    //its the first try, the sentence just begun, we skip backwards
+                    return  i;
+                }
+            }
+        }
+        return 0;
+    }
+
+    private class DoubleTapGestureListener extends GestureDetector.SimpleOnGestureListener {
+
+        @Override
+        public boolean onDown(MotionEvent e) {
+            return true;
+        }
+        // event when double tap occurs
+        @Override
+        public boolean onDoubleTap(MotionEvent e) {
+            pulseBackWard();
+            mViewingBook.setCurrentWordId((long)getStartingPosOfCurrentOrPrevSentence());
+            setBooksData();
+
+            restartReader();
+            return true;
+        }
+    }
+
+    private class DoubleTapNextGestureListener extends GestureDetector.SimpleOnGestureListener {
+
+        @Override
+        public boolean onDown(MotionEvent e) {
+            return true;
+        }
+        // event when double tap occurs
+        @Override
+        public boolean onDoubleTap(MotionEvent e) {
+            float x = e.getX();
+            float y = e.getY();
+
+            Log.d("Double Tap", "Tapped at: (" + x + "," + y + ")");
+
+            pulseFastForward();
+            mViewingBook.setCurrentWordId((long)getStartingPosOfNextSentence());
+            setBooksData();
+
+            restartReader();
+
+            return true;
+        }
+    }
+
+    private int getStartingPosOfNextSentence(){
+        for(int i = mViewingBook.getCurrentWordId().intValue(); i<mViewingBook.getSentenceWords().size(); i++){
+            Word nextWord = mViewingBook.getSentenceWords().get(i+1);
+            if(nextWord.getWord().endsWith(".")){
+                //the next word is the last word of current sentence
+                return i+2;
+            }
+
+        }
+
+        return 0;
+    }
+
+
+    private void pulseFastForward(){
+        final float alpha = 1f;
+
+        final int duration = 60;
+        forwardImageView.animate().alpha(alpha).setDuration(duration).setListener(new Animator.AnimatorListener() {
+            @Override
+            public void onAnimationStart(Animator animator) {
+
+            }
+
+            @Override
+            public void onAnimationEnd(Animator animator) {
+                forwardImageView.setAlpha(alpha);
+                forwardImageView.animate().alpha(0f).setDuration(duration).setListener(new Animator.AnimatorListener() {
+                    @Override
+                    public void onAnimationStart(Animator animator) {
+
+                    }
+
+                    @Override
+                    public void onAnimationEnd(Animator animator) {
+                        forwardImageView.setAlpha(0f);
+                        forwardImageView.animate().alpha(alpha).setDuration(duration).setListener(new Animator.AnimatorListener() {
+                            @Override
+                            public void onAnimationStart(Animator animator) {
+
+                            }
+
+                            @Override
+                            public void onAnimationEnd(Animator animator) {
+                                forwardImageView.setAlpha(alpha);
+                                forwardImageView.animate().alpha(0f).setDuration(mAnimationDurationSlow).setListener(new Animator.AnimatorListener() {
+                                    @Override
+                                    public void onAnimationStart(Animator animator) {
+
+                                    }
+
+                                    @Override
+                                    public void onAnimationEnd(Animator animator) {
+                                        forwardImageView.setAlpha(0f);
+                                    }
+
+                                    @Override
+                                    public void onAnimationCancel(Animator animator) {
+
+                                    }
+
+                                    @Override
+                                    public void onAnimationRepeat(Animator animator) {
+
+                                    }
+                                }).start();
+                            }
+
+                            @Override
+                            public void onAnimationCancel(Animator animator) {
+
+                            }
+
+                            @Override
+                            public void onAnimationRepeat(Animator animator) {
+
+                            }
+                        }).start();
+                    }
+
+                    @Override
+                    public void onAnimationCancel(Animator animator) {
+
+                    }
+
+                    @Override
+                    public void onAnimationRepeat(Animator animator) {
+
+                    }
+                }).start();
+            }
+
+            @Override
+            public void onAnimationCancel(Animator animator) {
+
+            }
+
+            @Override
+            public void onAnimationRepeat(Animator animator) {
+
+            }
+        }).start();
+    }
+
+    private void pulseBackWard(){
+        final float alpha = 1f;
+        final int duration = 60;
+        rewindImageView.animate().alpha(1f).setDuration(duration).setListener(new Animator.AnimatorListener() {
+            @Override
+            public void onAnimationStart(Animator animator) {
+
+            }
+
+            @Override
+            public void onAnimationEnd(Animator animator) {
+                rewindImageView.setAlpha(0f);
+                rewindImageView.animate().alpha(0f).setDuration(duration).setListener(new Animator.AnimatorListener() {
+                    @Override
+                    public void onAnimationStart(Animator animator) {
+
+                    }
+
+                    @Override
+                    public void onAnimationEnd(Animator animator) {
+                        rewindImageView.setAlpha(1f);
+                        rewindImageView.animate().alpha(1f).setDuration(duration).setListener(new Animator.AnimatorListener() {
+                            @Override
+                            public void onAnimationStart(Animator animator) {
+
+                            }
+
+                            @Override
+                            public void onAnimationEnd(Animator animator) {
+                                rewindImageView.setAlpha(0f);
+                                rewindImageView.animate().alpha(0f).setDuration(mAnimationDurationSlow).setListener(new Animator.AnimatorListener() {
+                                    @Override
+                                    public void onAnimationStart(Animator animator) {
+
+                                    }
+
+                                    @Override
+                                    public void onAnimationEnd(Animator animator) {
+                                        rewindImageView.setAlpha(0f);
+                                    }
+
+                                    @Override
+                                    public void onAnimationCancel(Animator animator) {
+
+                                    }
+
+                                    @Override
+                                    public void onAnimationRepeat(Animator animator) {
+
+                                    }
+                                }).start();
+                            }
+
+                            @Override
+                            public void onAnimationCancel(Animator animator) {
+
+                            }
+
+                            @Override
+                            public void onAnimationRepeat(Animator animator) {
+
+                            }
+                        }).start();
+                    }
+
+                    @Override
+                    public void onAnimationCancel(Animator animator) {
+
+                    }
+
+                    @Override
+                    public void onAnimationRepeat(Animator animator) {
+
+                    }
+                }).start();
+            }
+
+            @Override
+            public void onAnimationCancel(Animator animator) {
+
+            }
+
+            @Override
+            public void onAnimationRepeat(Animator animator) {
+
+            }
+        }).start();
+    }
 }

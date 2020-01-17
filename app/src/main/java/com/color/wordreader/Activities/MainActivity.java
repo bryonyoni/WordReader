@@ -21,6 +21,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.ParcelFileDescriptor;
+import android.os.Vibrator;
 import android.provider.DocumentsContract;
 import android.provider.MediaStore;
 import android.util.Log;
@@ -317,7 +318,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if(view.equals(openFilesImageView)){
             loadFile();
         }else if(view.equals(shareAppImageView)){
-
+            Vibrator s = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+            s.vibrate(50);
+            Intent sendIntent = new Intent();
+            sendIntent.setAction(Intent.ACTION_SEND);
+            sendIntent.putExtra(Intent.EXTRA_TEXT, "Hey Check out this app for reading books called Word Reader!");
+            sendIntent.setType("text/plain");
+            startActivity(Intent.createChooser(sendIntent, "Share the App."));
         }
     }
 

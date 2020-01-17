@@ -109,6 +109,8 @@
 
                         <View
                             android:layout_width="match_parent"
+                            android:alpha="0.3"
+                            android:layout_centerInParent="true"
                             android:background="@color/colorAccentDark"
                             android:layout_height="1dp"/>
 
@@ -116,7 +118,8 @@
                             android:id="@+id/percentageBarView"
                             style="?android:attr/progressBarStyleHorizontal"
                             android:layout_width="match_parent"
-                            android:layout_height="1dp"
+                            android:layout_height="1.5dp"
+                            android:layout_centerInParent="true"
                             android:indeterminate="false"
                             android:max="100"
                             android:progress="40"/>
@@ -143,6 +146,8 @@
 
             <View
                 android:layout_width="match_parent"
+                android:alpha="0.3"
+                android:layout_centerInParent="true"
                 android:background="@color/colorAccentDark"
                 android:layout_height="1dp"/>
 
@@ -150,7 +155,8 @@
                 android:id="@+id/bookProgressBigProgressBar"
                 style="?android:attr/progressBarStyleHorizontal"
                 android:layout_width="match_parent"
-                android:layout_height="1dp"
+                android:layout_centerInParent="true"
+                android:layout_height="1.5dp"
                 android:indeterminate="false"
                 android:max="100"
                 android:progress="40"/>
@@ -169,7 +175,54 @@
             android:layout_alignParentRight="true"
             android:layout_marginRight="30dp"
             android:layout_centerVertical="true"
-            android:layout_height="450dp"/>
+            android:layout_height="400dp"/>
+
+        <View
+            android:id="@+id/restartSentenceView"
+            android:layout_width="80dp"
+            android:layout_alignParentLeft="true"
+            android:layout_marginLeft="30dp"
+            android:layout_marginBottom="100dp"
+            android:layout_alignParentBottom="true"
+            android:layout_height="150dp"/>
+
+        <View
+            android:id="@+id/skipNextSentenceView"
+            android:layout_width="80dp"
+            android:layout_alignParentRight="true"
+            android:layout_marginRight="30dp"
+            android:layout_marginBottom="100dp"
+            android:layout_alignParentBottom="true"
+            android:layout_height="150dp"/>
+
+        <TextView
+            android:id="@+id/wpmTextView"
+            android:alpha="0"
+            android:layout_width="wrap_content"
+            android:text="20 words/min"
+            android:textColor="@color/colorPrimaryDark"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="110dp"
+            android:textSize="14sp"
+            android:layout_height="wrap_content"/>
+
+        <ImageView
+            android:id="@+id/forwardImageView"
+            android:layout_width="50dp"
+            android:alpha="0"
+            android:background="@drawable/ic_action_fast_forward"
+            android:layout_centerInParent="true"
+            android:translationY="50dp"
+            android:layout_height="50dp"/>
+
+        <ImageView
+            android:id="@+id/rewindImageView"
+            android:alpha="0"
+            android:layout_width="50dp"
+            android:background="@drawable/ic_action_fast_rewind"
+            android:layout_centerInParent="true"
+            android:translationY="50dp"
+            android:layout_height="50dp"/>
 
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/speedContainerCardView"
