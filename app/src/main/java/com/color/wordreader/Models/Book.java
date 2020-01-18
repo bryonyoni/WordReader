@@ -96,7 +96,15 @@ public class Book {
 
     public Word getNextWordAndUpdatePos(){
         mCurrentWordId+=1;
+        if(mBookWords.size()== mCurrentWordId){
+            mCurrentWordId = 0L;
+            return mBookWords.get((int)(long) 0);
+        }
         return mBookWords.get((int)(long) mCurrentWordId);
+    }
+
+    public boolean isLastWord(){
+        return (mCurrentWordId+1) == mBookWords.size();
     }
 
     public String getBookPath() {
