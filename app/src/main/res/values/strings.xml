@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">Word Reader</string>
+    <string name="restart_book">Restart Book.</string>
+    <string name="read_book_from_the_beginning_again">Read book from the beginning again.</string>
+    <string name="view_the_pdf_book_in_its_original_page_format">View the PDF book in its original page format.</string>
+    <string name="view_original_book">View Original Book.</string>
 </resources>

@@ -358,6 +358,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             Book newBook = new Book();
             newBook.setSentenceWords(allTheWordsForLoadedBook);
             newBook.setBookUrl(pdfBookData);
+            newBook.setBookPath(selectedImagePath);
             newBook.setBookName(pdfBookName);
             newBook.setBookCover(bookImage);
 

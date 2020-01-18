@@ -1,21 +1,29 @@
 package com.color.wordreader.Activities;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.interpolator.view.animation.LinearOutSlowInInterpolator;
 
 import android.animation.Animator;
+import android.content.ActivityNotFoundException;
 import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.color.wordreader.Constants;
 import com.color.wordreader.Models.Book;
@@ -23,6 +31,8 @@ import com.color.wordreader.Models.Word;
 import com.color.wordreader.R;
 import com.color.wordreader.Services.DatabaseManager;
 import com.google.android.material.card.MaterialCardView;
+
+import java.io.File;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
@@ -60,6 +70,7 @@ public class ReaderActivity extends AppCompatActivity implements View.OnClickLis
         mContext = this.getApplicationContext();
 
         pauseView.setOnClickListener(this);
+        bookThumbnailImageView.setOnClickListener(this);
 
         int intent = getIntent().getExtras().getInt(Constants.BOOK_ID);
         mViewingBook = new DatabaseManager(mContext).loadSpecificBook(intent);
@@ -175,8 +186,18 @@ public class ReaderActivity extends AppCompatActivity implements View.OnClickLis
     @Override
     public void onClick(View view) {
         if(view.equals(pauseView)){
-            if(!isPlaying) playWordReader();
+            if(!isPlaying){
+                playWordReader();
+                if(isBookOptionsShowing) hideBookOptions();
+            }
             else pauseWord();
+        }else if(view.equals(bookThumbnailImageView)){
+            if(!isBookOptionsShowing){
+                showBookOptions();
+                if(isPlaying) pauseWord();
+            }else{
+                hideBookOptions();
+            }
         }
     }
 
@@ -198,6 +219,8 @@ public class ReaderActivity extends AppCompatActivity implements View.OnClickLis
             pauseWord();
         }
     }
+
+
 
     wordTimerBackgroundTask w;
     private void startReader(){
@@ -226,7 +249,7 @@ public class ReaderActivity extends AppCompatActivity implements View.OnClickLis
         protected String doInBackground(String... strings) {
             while (isPlaying) {
                 try {
-                    String currentWord = mViewingBook.getCurrentWord().getWord();
+                    String currentWord = mViewingBook.getNextWord().getWord();
                     int sleepPlus = 0;
                     if(currentWord.length()>12){
                         sleepPlus = 200;
@@ -255,7 +278,6 @@ public class ReaderActivity extends AppCompatActivity implements View.OnClickLis
 
     }
 
-
     private void nextWord(){
         if(!isDownSwipingBoi){
             mViewingBook.getNextWordAndUpdatePos();
@@ -272,12 +294,13 @@ public class ReaderActivity extends AppCompatActivity implements View.OnClickLis
     }
 
 
+
+
     @Bind(R.id.speedView) View SpeedView;
     @Bind(R.id.speedContainerCardView) MaterialCardView speedContainerCardView;
     @Bind(R.id.speedBarView) View speedBarView;
     @Bind(R.id.speedTextView) TextView speedTextView;
     @Bind(R.id.wpmTextView) TextView wpmTextView;
-
     private int prevPos = 0;
     private int y_deltaBoi;
     private boolean isDownSwipingBoi = false;
@@ -359,6 +382,10 @@ public class ReaderActivity extends AppCompatActivity implements View.OnClickLis
         }
 
     }
+
+
+
+
 
     private int translationPos = DatabaseManager.dpToPx(150);
     private int oldIVal = 0;
@@ -487,6 +514,8 @@ public class ReaderActivity extends AppCompatActivity implements View.OnClickLis
         new DatabaseManager(mContext).setReadingSpeed(time, translationPos);
         oldIVal = 0;
     }
+
+
 
 
     @Bind(R.id.restartSentenceView) View restartSentenceView;
@@ -742,4 +771,126 @@ public class ReaderActivity extends AppCompatActivity implements View.OnClickLis
             }
         }).start();
     }
+
+
+
+    @Bind(R.id.bookOptionsLinearLayout) LinearLayout bookOptionsLinearLayout;
+    @Bind(R.id.restartBookLinearLayout) LinearLayout restartBookLinearLayout;
+    @Bind(R.id.viewOriginalLinearLayout) LinearLayout viewOriginalLinearLayout;
+    private boolean isBookOptionsShowing = false;
+
+    private void showBookOptions(){
+        isBookOptionsShowing = true;
+        bookOptionsLinearLayout.setVisibility(View.VISIBLE);
+        bookDetailsRelativeLayout.setTranslationY(DatabaseManager.dpToPx(110));
+
+        restartSentenceView.setVisibility(View.GONE);
+        skipNextSentenceView.setVisibility(View.GONE);
+
+        bookDetailsRelativeLayout.animate().translationY(0).setDuration(mAnimationDuration).setInterpolator(new LinearOutSlowInInterpolator())
+                .setListener(new Animator.AnimatorListener() {
+                    @Override
+                    public void onAnimationStart(Animator animator) {
+
+                    }
+
+                    @Override
+                    public void onAnimationEnd(Animator animator) {
+                        bookDetailsRelativeLayout.setTranslationY(0);
+                    }
+
+                    @Override
+                    public void onAnimationCancel(Animator animator) {
+
+                    }
+
+                    @Override
+                    public void onAnimationRepeat(Animator animator) {
+
+                    }
+                }).start();
+
+        restartBookLinearLayout.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                restartBook();
+            }
+        });
+        viewOriginalLinearLayout.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                open_File(mViewingBook.getBookPath());
+            }
+        });
+    }
+
+    private void hideBookOptions(){
+        isBookOptionsShowing = false;
+        bookDetailsRelativeLayout.animate().translationY(DatabaseManager.dpToPx(115)).setDuration(mAnimationDuration).setInterpolator(new LinearOutSlowInInterpolator())
+                .setListener(new Animator.AnimatorListener() {
+                    @Override
+                    public void onAnimationStart(Animator animator) {
+
+                    }
+
+                    @Override
+                    public void onAnimationEnd(Animator animator) {
+                        bookOptionsLinearLayout.setVisibility(View.GONE);
+                        bookDetailsRelativeLayout.setTranslationY(0);
+                    }
+
+                    @Override
+                    public void onAnimationCancel(Animator animator) {
+
+                    }
+
+                    @Override
+                    public void onAnimationRepeat(Animator animator) {
+
+                    }
+                }).start();
+
+        restartSentenceView.setVisibility(View.VISIBLE);
+        skipNextSentenceView.setVisibility(View.VISIBLE);
+    }
+
+    @Override
+    public void onBackPressed(){
+        if(isBookOptionsShowing){
+            hideBookOptions();
+        }else{
+            super.onBackPressed();
+        }
+    }
+
+    private void restartBook(){
+        AlertDialog alertDialog = new AlertDialog.Builder(ReaderActivity.this).create();
+        alertDialog.setTitle("Restart your book from the beginning?");
+        alertDialog.setMessage("Are you sure you want to continue?");
+        alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "YES.",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        mViewingBook.setCurrentWordId(0L);
+                        Toast.makeText(mContext, "Your book has been restarted.",Toast.LENGTH_SHORT).show();
+
+                        setBooksData();
+                        dialog.dismiss();
+                    }
+                });
+        alertDialog.show();
+
+
+    }
+
+    public void open_File(String filename) {
+        try{
+            Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(filename));
+            startActivity(browserIntent);
+        }catch (Exception e){
+            e.printStackTrace();
+            Toast.makeText(mContext, "Something went wrong.", Toast.LENGTH_SHORT).show();
+        }
+
+    }
+
 }

@@ -10,6 +10,7 @@ public class Book {
     private String mBookUrl;
     private Bitmap mBookCover;
     private int mStoragePos;
+    private String mBookPath;
     private List<Word> mBookWords = new ArrayList<>();
     private Long mCurrentWordId = 0L;
 
@@ -89,8 +90,20 @@ public class Book {
         return mBookWords.get((int)(long) mCurrentWordId);
     }
 
+    public Word getNextWord(){
+        return mBookWords.get((int)(long) mCurrentWordId+1);
+    }
+
     public Word getNextWordAndUpdatePos(){
         mCurrentWordId+=1;
         return mBookWords.get((int)(long) mCurrentWordId);
+    }
+
+    public String getBookPath() {
+        return mBookPath;
+    }
+
+    public void setBookPath(String mBookPath) {
+        this.mBookPath = mBookPath;
     }
 }

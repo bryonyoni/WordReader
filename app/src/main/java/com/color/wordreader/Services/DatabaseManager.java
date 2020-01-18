@@ -25,6 +25,7 @@ public class DatabaseManager {
     private final String BOOK_URL = "BOOK_URL";
     private final String READING_SPEED = "READING_SPEED";
     private final String BOOK_COVER = "BOOK_COVER";
+    private final String BOOK_PATH = "BOOK_PATH";
     private final String CURRENT_BOOK_WORD = "CURRENT_BOOK_WORD";
     private final String BOOK_SIZE = "BOOK_SIZE";
     private final String BOOK_POSITION = "BOOK_POSITION";
@@ -46,6 +47,7 @@ public class DatabaseManager {
                 Bitmap cover = decodeBitmapFromStorage(pref.getString(i+BOOK_COVER,""));
                 Long currentWord = pref.getLong(i+CURRENT_BOOK_WORD,0);
                 Long size = pref.getLong(i+BOOK_SIZE,0);
+                String path = pref.getString(i+BOOK_PATH,"");
                 int position = pref.getInt(i+BOOK_POSITION,i);
                 List<Word> bookWords = new ArrayList<>();
 
@@ -62,6 +64,7 @@ public class DatabaseManager {
                 loadedBook.setBookCover(cover);
                 loadedBook.setBookName(title);
                 loadedBook.setBookUrl(url);
+                loadedBook.setBookPath(path);
                 loadedBook.setCurrentWordId(currentWord);
                 loadedBook.setStoragePos(position);
                 loadedBook.setSentenceWords(bookWords);
@@ -82,6 +85,7 @@ public class DatabaseManager {
         Bitmap cover = decodeBitmapFromStorage(pref.getString(i+BOOK_COVER,""));
         Long currentWord = pref.getLong(i+CURRENT_BOOK_WORD,0);
         Long size = pref.getLong(i+BOOK_SIZE,0);
+        String path = pref.getString(i+BOOK_PATH,"");
         int position = pref.getInt(i+BOOK_POSITION,i);
         List<Word> bookWords = new ArrayList<>();
 
@@ -98,6 +102,7 @@ public class DatabaseManager {
         loadedBook.setBookCover(cover);
         loadedBook.setBookName(title);
         loadedBook.setBookUrl(url);
+        loadedBook.setBookPath(path);
         loadedBook.setCurrentWordId(currentWord);
         loadedBook.setStoragePos(position);
         loadedBook.setSentenceWords(bookWords);
@@ -152,6 +157,7 @@ public class DatabaseManager {
         editor.putString(newNumberOfBooksStored+BOOK_COVER, encodeBitmapForStorage(book.getBookCover()));
         editor.putLong(newNumberOfBooksStored+CURRENT_BOOK_WORD, book.getCurrentWordId());
         editor.putLong(newNumberOfBooksStored+BOOK_SIZE, book.getSentenceWords().size());
+        editor.putString(newNumberOfBooksStored+BOOK_PATH,book.getBookPath());
         editor.putInt(newNumberOfBooksStored+BOOK_POSITION, newNumberOfBooksStored);
 
         for(Word word: book.getSentenceWords()){
