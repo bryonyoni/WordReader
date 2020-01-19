@@ -13,6 +13,30 @@
         android:layout_height="match_parent">
 
         <LinearLayout
+            android:id="@+id/emptyListLinearLayout"
+            android:layout_width="wrap_content"
+            android:visibility="gone"
+            android:layout_centerInParent="true"
+            android:orientation="vertical"
+            android:layout_height="wrap_content">
+
+            <ImageView
+                android:layout_width="70dp"
+                android:layout_gravity="center_horizontal"
+                android:alpha="0.7"
+                android:background="@drawable/open_a_book"
+                android:layout_height="60dp"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:text="Open and read something!"
+                android:layout_marginTop="10dp"
+                android:textSize="12sp"
+                android:layout_height="wrap_content"/>
+
+        </LinearLayout>
+
+        <LinearLayout
             android:layout_width="match_parent"
             android:orientation="vertical"
             android:layout_height="match_parent">

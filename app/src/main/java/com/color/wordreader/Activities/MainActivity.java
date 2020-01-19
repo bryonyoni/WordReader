@@ -7,6 +7,7 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.Manifest;
+import android.app.ProgressDialog;
 import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.Context;
@@ -29,6 +30,7 @@ import android.view.View;
 import android.webkit.MimeTypeMap;
 import android.widget.GridLayout;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -55,6 +57,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Bind(R.id.openFilesImageView) ImageView openFilesImageView;
     @Bind(R.id.shareAppImageView) ImageView shareAppImageView;
     @Bind(R.id.myBooksRecyclerView) RecyclerView myBooksRecyclerView;
+    @Bind(R.id.settingsImageView) ImageView settingsImageView;
+    @Bind(R.id.emptyListLinearLayout) LinearLayout emptyListLinearLayout;
     private MyBooksRecyclerAdapter myBooksRecyclerAdapter;
 
     @Override
@@ -67,6 +71,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         openFilesImageView.setOnClickListener(this);
         shareAppImageView.setOnClickListener(this);
+        settingsImageView.setOnClickListener(this);
 
         loadMyBooks();
     }
@@ -75,6 +80,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         allMyBooks = new DatabaseManager(mContext).loadAllStoredBooks();
         loadAllBooksIntoRecyclerView();
 
+    }
+
+    @Override
+    protected void onResume(){
+        super.onResume();
+        loadMyBooks();
     }
 
 
@@ -129,8 +140,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 ActivityCompat.requestPermissions(MainActivity.this, new String[]{android.Manifest.permission.READ_EXTERNAL_STORAGE}, PICK_IMAGE);
             }
         } else {
-            List<String> myPdfs = getPdfFilesFromDevice(getApplicationContext());
-            getTextFromFile(myPdfs.get(0));
+            loadFile();
         }
     }
 
@@ -139,8 +149,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == PICK_IMAGE) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                List<String> myPdfs = getPdfFilesFromDevice(getApplicationContext());
-                getTextFromFile(myPdfs.get(0));
+                loadFile();
             } else {
                 Toast.makeText(getApplicationContext(), "Please allow the permission", Toast.LENGTH_LONG).show();
             }
@@ -159,6 +168,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mFilepath = null;
     }
 
+    private ProgressDialog dialog;
     @Override
     protected void onActivityResult(int requestCode, int resultCode,Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -169,6 +179,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 try {
                     String selectedImagePath = getPath(mContext, mFilepath);
                     Log.e("MainActivity", "" + selectedImagePath);
+
+                    dialog = new ProgressDialog(MainActivity.this);
+                    dialog.setMessage("Loading your book.");
+                    dialog.setCancelable(false);
+                    dialog.show();
 
                     loadSelectedPdfTask t = new loadSelectedPdfTask();
                     t.setData(selectedImagePath);
@@ -316,7 +331,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     public void onClick(View view) {
         if(view.equals(openFilesImageView)){
-            loadFile();
+            fn_permission();
         }else if(view.equals(shareAppImageView)){
             Vibrator s = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
             s.vibrate(50);
@@ -325,6 +340,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             sendIntent.putExtra(Intent.EXTRA_TEXT, "Hey Check out this app for reading books called Word Reader!");
             sendIntent.setType("text/plain");
             startActivity(Intent.createChooser(sendIntent, "Share the App."));
+        }else if(view.equals(settingsImageView)){
+            Intent i = new Intent(MainActivity.this, TweaksActivity.class);
+            startActivity(i);
         }
     }
 
@@ -362,6 +380,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             newBook.setBookName(pdfBookName);
             newBook.setBookCover(bookImage);
 
+            dialog.cancel();
             addBookToArrayListAndRecyclerView(newBook);
         }
 
@@ -423,15 +442,27 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 
     private void addBookToArrayListAndRecyclerView(Book newBook){
-        allMyBooks.add(newBook);
-        new DatabaseManager(mContext).storeNewBook(newBook);
-        loadAllBooksIntoRecyclerView();
+        try{
+            allMyBooks.add(newBook);
+            new DatabaseManager(mContext).storeNewBook(newBook);
+            loadAllBooksIntoRecyclerView();
+        }catch (Exception e){
+            e.printStackTrace();
+            Toast.makeText(mContext, "Something went wrong",Toast.LENGTH_SHORT).show();
+        }
+
     }
 
     private void loadAllBooksIntoRecyclerView(){
         myBooksRecyclerAdapter = new MyBooksRecyclerAdapter(allMyBooks, MainActivity.this);
         myBooksRecyclerView.setAdapter(myBooksRecyclerAdapter);
         myBooksRecyclerView.setLayoutManager(new GridLayoutManager(mContext,2));
+
+        if(allMyBooks.isEmpty()){
+            emptyListLinearLayout.setVisibility(View.VISIBLE);
+        }else{
+            emptyListLinearLayout.setVisibility(View.GONE);
+        }
     }
 
 

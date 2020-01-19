@@ -30,6 +30,7 @@ public class DatabaseManager {
     private final String BOOK_SIZE = "BOOK_SIZE";
     private final String BOOK_POSITION = "BOOK_POSITION";
     private final String TRANS_POS = "TRANS_POS";
+    private final String WORD_COUNT = "WORD_COUNT";
 
     public DatabaseManager(Context context){
         this.mContext = context;
@@ -130,7 +131,7 @@ public class DatabaseManager {
         if(time < Constants.MIN_READING_TIME || time > Constants.MAX_READING_TIME){
             return Constants.MIN_READING_TIME;
         }
-        return pref.getInt(READING_SPEED, Constants.MIN_READING_TIME);
+        return pref.getInt(READING_SPEED, Constants.MAX_READING_TIME);
     }
 
     public int getTransPos(){
@@ -139,7 +140,7 @@ public class DatabaseManager {
        if(transPos < 0 || transPos > dpToPx(300)){
            return dpToPx(300);
        }
-        return pref.getInt(TRANS_POS, dpToPx(300));
+        return transPos;
     }
 
     public void storeNewBook(Book book){
@@ -184,5 +185,21 @@ public class DatabaseManager {
 
     public static int dpToPx(int dp) {
         return (int) (dp * Resources.getSystem().getDisplayMetrics().density);
+    }
+
+
+    public void addReadCount(){
+        SharedPreferences pref = mContext.getSharedPreferences(WORD_COUNT, MODE_PRIVATE);
+        int total = pref.getInt(WORD_COUNT, 0);
+
+        SharedPreferences.Editor editor = pref.edit();
+        editor.putInt(WORD_COUNT, total+1);
+        editor.apply();
+
+    }
+
+    public int getReadCount(){
+        SharedPreferences pref = mContext.getSharedPreferences(WORD_COUNT, MODE_PRIVATE);
+        return pref.getInt(WORD_COUNT, 0);
     }
 }

@@ -61,7 +61,7 @@
 
                     <com.google.android.material.card.MaterialCardView
                         android:layout_width="wrap_content"
-                        app:cardCornerRadius="10dp"
+                        app:cardCornerRadius="0dp"
                         android:layout_gravity="center"
                         app:cardElevation="0dp"
                         app:cardBackgroundColor="@color/grey"

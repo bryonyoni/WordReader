@@ -287,7 +287,7 @@ public class ReaderActivity extends AppCompatActivity implements View.OnClickLis
             bookProgressValueTextView.setText(mViewingBook.percentageForCompletion()+"%");
 
             bookProgressBigProgressBar.setProgress(mViewingBook.percentageForCompletion());
-
+            new DatabaseManager(mContext).addReadCount();
             if(mViewingBook.isLastWord()){
                 pauseWord();
             }
