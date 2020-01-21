@@ -1,0 +1,278 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/backgroundDark"
+    tools:context=".Activities.TweaksActivity">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:paddingLeft="20dp"
+            android:paddingRight="20dp"
+            android:paddingTop="30dp"
+            android:orientation="vertical"
+            android:layout_height="match_parent">
+
+            <TextView
+                android:id="@+id/titleTextView"
+                android:textSize="25sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_background_dark"
+                android:layout_marginLeft="10dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Word Reader."/>
+
+
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/speedContainerCardView"
+                android:layout_width="match_parent"
+                android:layout_marginTop="20dp"
+                app:cardCornerRadius="20dp"
+                app:cardBackgroundColor="@color/backgroundDark2"
+                app:cardElevation="0dp"
+                android:layout_height="wrap_content">
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:padding="10dp"
+                    android:layout_height="wrap_content">
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:orientation="vertical"
+                        android:layout_marginStart="10dp"
+                        android:layout_height="wrap_content">
+
+                        <TextView
+                            android:textSize="19sp"
+                            android:layout_width="wrap_content"
+                            android:textColor="@color/text_background_dark"
+                            android:layout_height="wrap_content"
+                            android:text="Word Count."/>
+
+                        <TextView
+                            android:textSize="15sp"
+                            android:alpha="0.8"
+                            android:layout_width="wrap_content"
+                            android:textColor="@color/text_background_dark"
+                            android:layout_height="wrap_content"
+                            android:text="How many words I've read."/>
+
+                        <TextView
+                            android:id="@+id/wordCountTextView"
+                            android:layout_marginTop="5dp"
+                            android:textSize="13sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/text_background_dark"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="69,779,420 words."/>
+
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:orientation="vertical"
+                        android:layout_marginTop="5dp"
+                        android:layout_alignParentRight="true"
+                        android:layout_marginStart="10dp"
+                        android:layout_marginEnd="10dp"
+                        android:layout_height="wrap_content">
+
+                        <TextView
+                            android:textSize="12sp"
+                            android:textColor="@color/text_background_dark"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Rank:"/>
+
+                        <TextView
+                            android:layout_marginTop="5dp"
+                            android:textSize="20sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/text_background_dark"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Noob."/>
+
+                    </LinearLayout>
+
+                </RelativeLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_marginTop="20dp"
+                app:cardCornerRadius="20dp"
+                app:cardBackgroundColor="@color/backgroundDark2"
+                app:cardElevation="0dp"
+                android:layout_height="wrap_content">
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:padding="10dp"
+                    android:layout_height="wrap_content">
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:orientation="vertical"
+                        android:layout_marginStart="10dp"
+                        android:layout_height="wrap_content">
+
+                        <TextView
+                            android:textSize="19sp"
+                            android:textColor="@color/text_background_dark"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Auto Backup."/>
+
+                        <TextView
+                            android:textSize="13sp"
+                            android:alpha="0.8"
+                            android:textColor="@color/text_background_dark"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Automatically back up everything to the cloud."/>
+
+                        <TextView
+                            android:layout_marginTop="5dp"
+                            android:textSize="13sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/text_background_dark"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Coming Soon!"/>
+
+                    </LinearLayout>
+
+                </RelativeLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_marginTop="20dp"
+                app:cardCornerRadius="20dp"
+                app:cardBackgroundColor="@color/backgroundDark2"
+                app:cardElevation="0dp"
+                android:layout_height="wrap_content">
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:padding="10dp"
+                    android:layout_height="wrap_content">
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:orientation="vertical"
+                        android:layout_marginStart="10dp"
+                        android:layout_height="wrap_content">
+
+                        <TextView
+                            android:textSize="19sp"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textColor="@color/text_background_dark"
+                            android:text="Hide Finished Books"/>
+
+                        <TextView
+                            android:textSize="13sp"
+                            android:alpha="0.8"
+                            android:layout_width="wrap_content"
+                            android:textColor="@color/text_background_dark"
+                            android:layout_height="wrap_content"
+                            android:text="Automatically hide your finished books"/>
+
+                        <TextView
+                            android:layout_marginTop="5dp"
+                            android:textSize="13sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/text_background_dark"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Coming Soon!"/>
+
+                    </LinearLayout>
+
+                </RelativeLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_marginTop="20dp"
+                app:cardCornerRadius="20dp"
+                app:cardBackgroundColor="@color/backgroundDark2"
+                app:cardElevation="0dp"
+                android:layout_height="wrap_content">
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:padding="10dp"
+                    android:layout_height="wrap_content">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:orientation="vertical"
+                        android:layout_marginStart="10dp"
+                        android:layout_height="wrap_content">
+
+                        <TextView
+                            android:textSize="19sp"
+                            android:textColor="@color/text_background_dark"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="App Version"/>
+
+                        <TextView
+                            android:textSize="13sp"
+                            android:alpha="0.8"
+                            android:textColor="@color/text_background_dark"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Official Version 1.0"/>
+
+                        <View
+                            android:layout_width="match_parent"
+                            android:background="@color/text_background_dark"
+                            android:alpha="0.3"
+                            android:layout_marginEnd="10dp"
+                            android:layout_marginTop="10dp"
+                            android:layout_marginBottom="10dp"
+                            android:layout_height="1dp"/>
+
+                        <TextView
+                            android:textSize="19sp"
+                            android:textColor="@color/text_background_dark"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Copyright."/>
+
+                        <TextView
+                            android:textSize="13sp"
+                            android:alpha="0.8"
+                            android:textColor="@color/text_background_dark"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Copyright 2010, Color Corporation."/>
+
+                    </LinearLayout>
+
+                </RelativeLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+        </LinearLayout>
+
+    </RelativeLayout>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

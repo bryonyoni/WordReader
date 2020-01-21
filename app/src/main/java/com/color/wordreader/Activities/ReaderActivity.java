@@ -5,6 +5,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.interpolator.view.animation.LinearOutSlowInInterpolator;
 
 import android.animation.Animator;
+import android.animation.ObjectAnimator;
+import android.animation.TimeInterpolator;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -18,6 +20,8 @@ import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.Transformation;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
@@ -64,7 +68,13 @@ public class ReaderActivity extends AppCompatActivity implements View.OnClickLis
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_reader);
+
+        if(new DatabaseManager(getApplicationContext()).isDarkThemeEnabled()){
+            setContentView(R.layout.activity_reader_dark);
+        }else{
+            setContentView(R.layout.activity_reader);
+        }
+
 
         ButterKnife.bind(this);
         mContext = this.getApplicationContext();
@@ -779,38 +789,52 @@ public class ReaderActivity extends AppCompatActivity implements View.OnClickLis
     @Bind(R.id.bookOptionsLinearLayout) LinearLayout bookOptionsLinearLayout;
     @Bind(R.id.restartBookLinearLayout) LinearLayout restartBookLinearLayout;
     @Bind(R.id.viewOriginalLinearLayout) LinearLayout viewOriginalLinearLayout;
+    @Bind(R.id.separatorView) View separatorView;
     private boolean isBookOptionsShowing = false;
 
     private void showBookOptions(){
         isBookOptionsShowing = true;
-        bookOptionsLinearLayout.setVisibility(View.VISIBLE);
-        bookDetailsRelativeLayout.setTranslationY(DatabaseManager.dpToPx(110));
+//        bookOptionsLinearLayout.setVisibility(View.VISIBLE);
+//        bookDetailsRelativeLayout.setTranslationY(DatabaseManager.dpToPx(110));
 
         restartSentenceView.setVisibility(View.GONE);
         skipNextSentenceView.setVisibility(View.GONE);
+        separatorView.setVisibility(View.VISIBLE);
 
-        bookDetailsRelativeLayout.animate().translationY(0).setDuration(mAnimationDuration).setInterpolator(new LinearOutSlowInInterpolator())
-                .setListener(new Animator.AnimatorListener() {
-                    @Override
-                    public void onAnimationStart(Animator animator) {
+        Animation anim = new Animation(){
+            @Override
+            protected void applyTransformation(float interpolatedTime, Transformation t) {
+                RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams) bookDetailsRelativeLayout.getLayoutParams();
+                layoutParams.bottomMargin = (int)((1f - interpolatedTime) * (float)DatabaseManager.dpToPx(-120));
+                bookDetailsRelativeLayout.setLayoutParams(layoutParams);
+            }
+        };
+        anim.setDuration(mAnimationDuration);
+        anim.setInterpolator(new LinearOutSlowInInterpolator());
+        bookDetailsRelativeLayout.startAnimation(anim);
 
-                    }
-
-                    @Override
-                    public void onAnimationEnd(Animator animator) {
-                        bookDetailsRelativeLayout.setTranslationY(0);
-                    }
-
-                    @Override
-                    public void onAnimationCancel(Animator animator) {
-
-                    }
-
-                    @Override
-                    public void onAnimationRepeat(Animator animator) {
-
-                    }
-                }).start();
+//        bookDetailsRelativeLayout.animate().translationY(0).setDuration(mAnimationDuration).setInterpolator(new LinearOutSlowInInterpolator())
+//                .setListener(new Animator.AnimatorListener() {
+//                    @Override
+//                    public void onAnimationStart(Animator animator) {
+//
+//                    }
+//
+//                    @Override
+//                    public void onAnimationEnd(Animator animator) {
+//                        bookDetailsRelativeLayout.setTranslationY(0);
+//                    }
+//
+//                    @Override
+//                    public void onAnimationCancel(Animator animator) {
+//
+//                    }
+//
+//                    @Override
+//                    public void onAnimationRepeat(Animator animator) {
+//
+//                    }
+//                }).start();
 
         restartBookLinearLayout.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -828,32 +852,46 @@ public class ReaderActivity extends AppCompatActivity implements View.OnClickLis
 
     private void hideBookOptions(){
         isBookOptionsShowing = false;
-        bookDetailsRelativeLayout.animate().translationY(DatabaseManager.dpToPx(115)).setDuration(mAnimationDuration).setInterpolator(new LinearOutSlowInInterpolator())
-                .setListener(new Animator.AnimatorListener() {
-                    @Override
-                    public void onAnimationStart(Animator animator) {
+//        bookDetailsRelativeLayout.animate().translationY(DatabaseManager.dpToPx(115)).setDuration(mAnimationDuration).setInterpolator(new LinearOutSlowInInterpolator())
+//                .setListener(new Animator.AnimatorListener() {
+//                    @Override
+//                    public void onAnimationStart(Animator animator) {
+//
+//                    }
+//
+//                    @Override
+//                    public void onAnimationEnd(Animator animator) {
+//                        bookOptionsLinearLayout.setVisibility(View.GONE);
+//                        bookDetailsRelativeLayout.setTranslationY(0);
+//                    }
+//
+//                    @Override
+//                    public void onAnimationCancel(Animator animator) {
+//
+//                    }
+//
+//                    @Override
+//                    public void onAnimationRepeat(Animator animator) {
+//
+//                    }
+//                }).start();
 
-                    }
-
-                    @Override
-                    public void onAnimationEnd(Animator animator) {
-                        bookOptionsLinearLayout.setVisibility(View.GONE);
-                        bookDetailsRelativeLayout.setTranslationY(0);
-                    }
-
-                    @Override
-                    public void onAnimationCancel(Animator animator) {
-
-                    }
-
-                    @Override
-                    public void onAnimationRepeat(Animator animator) {
-
-                    }
-                }).start();
+        Animation anim = new Animation(){
+            @Override
+            protected void applyTransformation(float interpolatedTime, Transformation t) {
+                Log.e(TAG,"interpolatedTime: "+interpolatedTime);
+                RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams) bookDetailsRelativeLayout.getLayoutParams();
+                layoutParams.bottomMargin = (int)(interpolatedTime* (float)DatabaseManager.dpToPx(-120));
+                bookDetailsRelativeLayout.setLayoutParams(layoutParams);
+            }
+        };
+        anim.setDuration(mAnimationDuration);
+        anim.setInterpolator(new LinearOutSlowInInterpolator());
+        bookDetailsRelativeLayout.startAnimation(anim);
 
         restartSentenceView.setVisibility(View.VISIBLE);
         skipNextSentenceView.setVisibility(View.VISIBLE);
+        separatorView.setVisibility(View.GONE);
     }
 
     @Override

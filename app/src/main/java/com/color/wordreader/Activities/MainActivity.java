@@ -60,11 +60,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Bind(R.id.settingsImageView) ImageView settingsImageView;
     @Bind(R.id.emptyListLinearLayout) LinearLayout emptyListLinearLayout;
     private MyBooksRecyclerAdapter myBooksRecyclerAdapter;
+    @Bind(R.id.nightImageView) ImageView nightImageView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        if(new DatabaseManager(getApplicationContext()).isDarkThemeEnabled()){
+            setContentView(R.layout.activity_main_dark);
+        }else{
+            setContentView(R.layout.activity_main);
+        }
 
         mContext = this.getApplicationContext();
         ButterKnife.bind(this);
@@ -72,7 +77,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         openFilesImageView.setOnClickListener(this);
         shareAppImageView.setOnClickListener(this);
         settingsImageView.setOnClickListener(this);
-
+        nightImageView.setOnClickListener(this);
         loadMyBooks();
     }
 
@@ -337,12 +342,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             s.vibrate(50);
             Intent sendIntent = new Intent();
             sendIntent.setAction(Intent.ACTION_SEND);
-            sendIntent.putExtra(Intent.EXTRA_TEXT, "Hey Check out this app for reading books called Word Reader!");
+            sendIntent.putExtra(Intent.EXTRA_TEXT, "Hey, you should check out this app for reading books called Word Reader. It's really cool");
             sendIntent.setType("text/plain");
             startActivity(Intent.createChooser(sendIntent, "Share the App."));
         }else if(view.equals(settingsImageView)){
             Intent i = new Intent(MainActivity.this, TweaksActivity.class);
             startActivity(i);
+        }else if(view.equals(nightImageView)){
+            boolean isDarkThemeEnabled = new DatabaseManager(mContext).isDarkThemeEnabled();
+            new DatabaseManager(mContext).setDarkMode(!isDarkThemeEnabled);
+            Intent intent = getIntent();
+            finish();
+            startActivity(intent);
         }
     }
 

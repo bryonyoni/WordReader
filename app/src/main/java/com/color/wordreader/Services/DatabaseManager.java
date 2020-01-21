@@ -31,6 +31,7 @@ public class DatabaseManager {
     private final String BOOK_POSITION = "BOOK_POSITION";
     private final String TRANS_POS = "TRANS_POS";
     private final String WORD_COUNT = "WORD_COUNT";
+    private final String DARK_MODE = "DARK_MODE";
 
     public DatabaseManager(Context context){
         this.mContext = context;
@@ -201,5 +202,16 @@ public class DatabaseManager {
     public int getReadCount(){
         SharedPreferences pref = mContext.getSharedPreferences(WORD_COUNT, MODE_PRIVATE);
         return pref.getInt(WORD_COUNT, 0);
+    }
+
+
+    public boolean isDarkThemeEnabled(){
+        SharedPreferences pref = mContext.getSharedPreferences(DARK_MODE, MODE_PRIVATE);
+        return pref.getBoolean(DARK_MODE, false);
+    }
+
+    public void setDarkMode(boolean mode){
+        SharedPreferences pref = mContext.getSharedPreferences(DARK_MODE, MODE_PRIVATE);
+        pref.edit().putBoolean(DARK_MODE,mode).apply();
     }
 }

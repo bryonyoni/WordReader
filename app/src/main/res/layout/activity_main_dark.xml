@@ -5,6 +5,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/backgroundDark"
     tools:context=".Activities.MainActivity">
 
     <RelativeLayout
@@ -22,14 +23,14 @@
             <ImageView
                 android:layout_width="70dp"
                 android:layout_gravity="center_horizontal"
-                android:alpha="0.7"
-                android:background="@drawable/open_a_book"
+                android:background="@drawable/open_a_book_dark"
                 android:layout_height="60dp"/>
 
             <TextView
                 android:layout_width="wrap_content"
                 android:text="Open and read something!"
                 android:layout_marginTop="10dp"
+                android:textColor="@color/text_background_dark"
                 android:textSize="12sp"
                 android:layout_height="wrap_content"/>
 
@@ -52,6 +53,7 @@
                     android:id="@+id/titleTextView"
                     android:textSize="25sp"
                     android:textStyle="bold"
+                    android:textColor="@color/text_background_dark"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Word Reader."/>
@@ -61,7 +63,7 @@
                     android:layout_width="25dp"
                     android:layout_alignParentRight="true"
                     android:layout_centerVertical="true"
-                    android:background="@drawable/night_button"
+                    android:background="@drawable/night_button_dark"
                     android:layout_height="25dp"/>
 
             </RelativeLayout>
@@ -81,27 +83,27 @@
             android:paddingTop="25dp"
             android:paddingRight="60dp"
             android:paddingLeft="60dp"
-            android:background="@color/white"
+            android:background="@color/backgroundDark2"
             android:layout_height="wrap_content">
 
             <ImageView
                 android:id="@+id/openFilesImageView"
                 android:layout_width="25dp"
-                android:background="@drawable/files_button"
+                android:background="@drawable/files_button_dark"
                 android:layout_height="20dp"/>
 
             <ImageView
                 android:id="@+id/shareAppImageView"
                 android:layout_width="25dp"
                 android:layout_centerHorizontal="true"
-                android:background="@drawable/something_button"
+                android:background="@drawable/share_button_dark"
                 android:layout_height="20dp"/>
 
             <ImageView
                 android:id="@+id/settingsImageView"
                 android:layout_width="27dp"
                 android:layout_alignParentRight="true"
-                android:background="@drawable/settings_button"
+                android:background="@drawable/settings_button_dark"
                 android:layout_height="18dp"/>
 
         </RelativeLayout>

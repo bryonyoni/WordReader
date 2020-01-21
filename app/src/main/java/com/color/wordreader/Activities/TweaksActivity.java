@@ -16,7 +16,12 @@ public class TweaksActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_tweaks);
+
+        if(new DatabaseManager(getApplicationContext()).isDarkThemeEnabled()){
+            setContentView(R.layout.activity_tweaks_dark);
+        }else{
+            setContentView(R.layout.activity_tweaks);
+        }
 
         NumberFormat format = NumberFormat.getInstance(Locale.US);
 

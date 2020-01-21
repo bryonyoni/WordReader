@@ -17,6 +17,7 @@ import com.color.wordreader.Activities.ReaderActivity;
 import com.color.wordreader.Constants;
 import com.color.wordreader.Models.Book;
 import com.color.wordreader.R;
+import com.color.wordreader.Services.DatabaseManager;
 
 import java.util.List;
 
@@ -35,7 +36,12 @@ public class MyBooksRecyclerAdapter extends RecyclerView.Adapter<MyBooksRecycler
         Context context = viewGroup.getContext();
         LayoutInflater inflater = LayoutInflater.from(context);
 
-        View recipeView = inflater.inflate(R.layout.my_book_item, viewGroup, false);
+        View recipeView;
+        if(new DatabaseManager(mActivity).isDarkThemeEnabled()){
+            recipeView = inflater.inflate(R.layout.my_book_item_dark, viewGroup, false);
+        }else{
+            recipeView = inflater.inflate(R.layout.my_book_item, viewGroup, false);
+        }
         return new MyBooksRecyclerAdapter.ViewHolder(recipeView);
     }
 
