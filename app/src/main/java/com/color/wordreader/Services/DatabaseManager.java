@@ -31,6 +31,7 @@ public class DatabaseManager {
     private final String BOOK_POSITION = "BOOK_POSITION";
     private final String TRANS_POS = "TRANS_POS";
     private final String WORD_COUNT = "WORD_COUNT";
+    private final String WORD_COUNT_LONG = "WORD_COUNT_LONG";
     private final String DARK_MODE = "DARK_MODE";
 
     public DatabaseManager(Context context){
@@ -190,18 +191,18 @@ public class DatabaseManager {
 
 
     public void addReadCount(){
-        SharedPreferences pref = mContext.getSharedPreferences(WORD_COUNT, MODE_PRIVATE);
-        int total = pref.getInt(WORD_COUNT, 0);
+        SharedPreferences pref = mContext.getSharedPreferences(WORD_COUNT_LONG, MODE_PRIVATE);
+        long total = pref.getLong(WORD_COUNT_LONG, 0L);
 
         SharedPreferences.Editor editor = pref.edit();
-        editor.putInt(WORD_COUNT, total+1);
+        editor.putLong(WORD_COUNT_LONG, total+1);
         editor.apply();
 
     }
 
-    public int getReadCount(){
-        SharedPreferences pref = mContext.getSharedPreferences(WORD_COUNT, MODE_PRIVATE);
-        return pref.getInt(WORD_COUNT, 0);
+    public long getReadCount(){
+        SharedPreferences pref = mContext.getSharedPreferences(WORD_COUNT_LONG, MODE_PRIVATE);
+        return pref.getLong(WORD_COUNT_LONG, 0L);
     }
 
 

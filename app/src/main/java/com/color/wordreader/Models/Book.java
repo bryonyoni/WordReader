@@ -96,11 +96,30 @@ public class Book {
 
     public Word getNextWordAndUpdatePos(){
         mCurrentWordId+=1;
-        if(mBookWords.size()== mCurrentWordId){
+        checkForHyphens();
+        if(mBookWords.size()<= mCurrentWordId){
             mCurrentWordId = 0L;
             return mBookWords.get((int)(long) 0);
         }
         return mBookWords.get((int)(long) mCurrentWordId);
+    }
+
+    private void checkForHyphens(){
+        Word currWord = mBookWords.get((int)(long)mCurrentWordId);
+        Word nextWord = mBookWords.get((int)(long)mCurrentWordId+1);
+
+        if(currWord.getWord().endsWith("-")){
+            //if it ends with a hyphen
+            String newWord = currWord.getWord()+nextWord.getWord();
+            String hyphenLessWord = newWord.replace("-","");
+            mBookWords.get((int)(long)mCurrentWordId+1).setWord(hyphenLessWord);
+            mCurrentWordId+=1;
+        }else if(nextWord.getWord().startsWith("-")){
+            String newWord = currWord.getWord()+nextWord.getWord();
+            String hyphenLessWord = newWord.replace("-","");
+            mBookWords.get((int)(long)mCurrentWordId+1).setWord(hyphenLessWord);
+            mCurrentWordId+=1;
+        }
     }
 
     public boolean isLastWord(){

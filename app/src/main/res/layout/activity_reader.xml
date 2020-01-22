@@ -44,7 +44,7 @@
             android:paddingBottom="15dp"
             android:paddingTop="15dp"
             android:paddingRight="25dp"
-            android:layout_marginBottom="-130dp"
+            android:layout_marginBottom="-120dp"
             android:visibility="visible"
             android:paddingLeft="25dp"
             android:background="@color/white"
@@ -276,9 +276,9 @@
 
         <View
             android:id="@+id/speedView"
-            android:layout_width="80dp"
+            android:layout_width="100dp"
             android:layout_alignParentRight="true"
-            android:layout_marginRight="30dp"
+            android:layout_marginRight="15dp"
             android:layout_centerVertical="true"
             android:layout_height="400dp"/>
 

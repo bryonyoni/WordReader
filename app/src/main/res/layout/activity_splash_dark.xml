@@ -9,10 +9,10 @@
     tools:context=".Activities.SplashActivity">
 
     <ImageView
-        android:layout_width="140dp"
+        android:layout_width="120dp"
         android:layout_gravity="center"
         android:translationY="-50dp"
-        android:background="@drawable/logo"
-        android:layout_height="140dp"/>
+        android:background="@drawable/logo_two_dark"
+        android:layout_height="80dp"/>
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

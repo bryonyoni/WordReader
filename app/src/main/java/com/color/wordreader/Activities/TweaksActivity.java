@@ -26,7 +26,28 @@ public class TweaksActivity extends AppCompatActivity {
         NumberFormat format = NumberFormat.getInstance(Locale.US);
 
         TextView wordCountTextView = findViewById(R.id.wordCountTextView);
-        int count = new DatabaseManager(getApplicationContext()).getReadCount();
+        long count = new DatabaseManager(getApplicationContext()).getReadCount();
         wordCountTextView.setText(String.format("%s words", format.format(count)));
+
+
+        TextView rankTextView = findViewById(R.id.rankTextView);
+
+        if(count< 1000L){
+            rankTextView.setText("Beginner.");
+        }else if(count< 10000L){
+            rankTextView.setText("Amature.");
+        }else if(count< 100000L){
+            rankTextView.setText("Pro-Amateur.");
+        }else if(count< 1000000L){
+            rankTextView.setText("Pro.");
+        }else if(count< 10000000L){
+            rankTextView.setText("Master.");
+        }else if(count< 100000000L){
+            rankTextView.setText("Super-Human.");
+        }else if(count< 1000000000L){
+            rankTextView.setText("Titan.");
+        }else{
+            rankTextView.setText("God.");
+        }
     }
 }

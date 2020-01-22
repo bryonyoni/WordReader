@@ -322,7 +322,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             PdfReader reader = new PdfReader(allPdfFiles);
             int n = reader.getNumberOfPages();
             for (int i = 0; i <n ; i++) {
-                parsedText   = parsedText+ PdfTextExtractor.getTextFromPage(reader, i+1).trim()+"\n"; //Extracting the content from the different pages
+                parsedText   = new StringBuilder()
+                        .append(parsedText)
+                        .append(PdfTextExtractor.getTextFromPage(reader, i + 1).trim())
+//                        .append("\n")
+                        .toString(); //Extracting the content from the different pages
             }
             reader.close();
             return parsedText;
@@ -353,6 +357,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             new DatabaseManager(mContext).setDarkMode(!isDarkThemeEnabled);
             Intent intent = getIntent();
             finish();
+            overridePendingTransition(0, 0);
             startActivity(intent);
         }
     }

@@ -37,6 +37,8 @@ import com.color.wordreader.Services.DatabaseManager;
 import com.google.android.material.card.MaterialCardView;
 
 import java.io.File;
+import java.text.NumberFormat;
+import java.util.Locale;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
@@ -57,6 +59,7 @@ public class ReaderActivity extends AppCompatActivity implements View.OnClickLis
     @Bind(R.id.percentageBarView) ProgressBar percentageBarView;
     @Bind(R.id.bookProgressBigProgressBar) ProgressBar bookProgressBigProgressBar;
     @Bind(R.id.pauseView) View pauseView;
+    @Bind(R.id.wordsRemainingTextView) TextView wordsRemainingTextView;
 
     private int mAnimationDuration = 300;
     private int mAnimationDurationFast = 150;
@@ -145,6 +148,51 @@ public class ReaderActivity extends AppCompatActivity implements View.OnClickLis
                 }).start();
 
         new DatabaseManager(mContext).updateBookProgress(mViewingBook);
+
+        wordsRemainingTextView.animate().alpha(1f).setDuration(mAnimationDuration)
+                .setListener(new Animator.AnimatorListener() {
+            @Override
+            public void onAnimationStart(Animator animator) {
+
+            }
+
+            @Override
+            public void onAnimationEnd(Animator animator) {
+                wordsRemainingTextView.setAlpha(1f);
+            }
+
+            @Override
+            public void onAnimationCancel(Animator animator) {
+
+            }
+
+            @Override
+            public void onAnimationRepeat(Animator animator) {
+
+            }
+        }).start();
+
+        int wordsSoFar = (int)(long)mViewingBook.getCurrentWordId();
+        int totalWords = mViewingBook.getSentenceWords().size();
+
+        NumberFormat format = NumberFormat.getInstance(Locale.US);
+
+        double wordCount = 60000/time;
+        int timeTaken = (int)(totalWords/wordCount);
+        int hrs = timeTaken/60;
+        int min = timeTaken%60;
+
+        if(hrs!=0){
+            if(hrs==1){
+                wordsRemainingTextView.setText(String.format("%s / %s words \n %d:%d min", format.format(wordsSoFar), format.format(totalWords), hrs, min));
+
+            }else wordsRemainingTextView.setText(String.format("%s / %s words \n %d:%d min", format.format(wordsSoFar), format.format(totalWords), hrs, min));
+
+        }else{
+            wordsRemainingTextView.setText(String.format("%s / %s words \n %d min", format.format(wordsSoFar), format.format(totalWords), min));
+        }
+
+
     }
 
     private void playWordReader(){
@@ -191,6 +239,29 @@ public class ReaderActivity extends AppCompatActivity implements View.OnClickLis
 
                     }
                 }).start();
+
+        wordsRemainingTextView.animate().alpha(0f).setDuration(mAnimationDuration)
+                .setListener(new Animator.AnimatorListener() {
+                    @Override
+                    public void onAnimationStart(Animator animator) {
+
+                    }
+
+                    @Override
+                    public void onAnimationEnd(Animator animator) {
+                        wordsRemainingTextView.setAlpha(0f);
+                    }
+
+                    @Override
+                    public void onAnimationCancel(Animator animator) {
+
+                    }
+
+                    @Override
+                    public void onAnimationRepeat(Animator animator) {
+
+                    }
+                }).start();
     }
 
     @Override
@@ -221,6 +292,50 @@ public class ReaderActivity extends AppCompatActivity implements View.OnClickLis
         bookProgressValueTextView.setText(mViewingBook.percentageForCompletion()+"%");
 
         bookProgressBigProgressBar.setProgress(mViewingBook.percentageForCompletion());
+
+
+        wordsRemainingTextView.animate().alpha(1f).setDuration(mAnimationDuration)
+                .setListener(new Animator.AnimatorListener() {
+                    @Override
+                    public void onAnimationStart(Animator animator) {
+
+                    }
+
+                    @Override
+                    public void onAnimationEnd(Animator animator) {
+                        wordsRemainingTextView.setAlpha(1f);
+                    }
+
+                    @Override
+                    public void onAnimationCancel(Animator animator) {
+
+                    }
+
+                    @Override
+                    public void onAnimationRepeat(Animator animator) {
+
+                    }
+                }).start();
+
+        int wordsSoFar = (int)(long)mViewingBook.getCurrentWordId();
+        int totalWords = mViewingBook.getSentenceWords().size();
+
+        NumberFormat format = NumberFormat.getInstance(Locale.US);
+
+        double wordCount = 60000/time;
+        int timeTaken = (int)(totalWords/wordCount);
+        int hrs = timeTaken/60;
+        int min = timeTaken%60;
+
+        if(hrs!=0){
+            if(hrs==1){
+                wordsRemainingTextView.setText(String.format("%s / %s words \n %d:%d min", format.format(wordsSoFar), format.format(totalWords), hrs, min));
+
+            }else wordsRemainingTextView.setText(String.format("%s / %s words \n %d:%d min", format.format(wordsSoFar), format.format(totalWords), hrs, min));
+
+        }else{
+            wordsRemainingTextView.setText(String.format("%s / %s words \n %d min", format.format(wordsSoFar), format.format(totalWords), min));
+        }
     }
 
     @Override
@@ -240,15 +355,17 @@ public class ReaderActivity extends AppCompatActivity implements View.OnClickLis
     }
 
     private void restartReader(){
-        isPlaying = false;
+        if(isPlaying) {
+            isPlaying = false;
 
-        new Handler().postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                isPlaying = true;
-                startReader();
-            }
-        },500);
+            new Handler().postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    isPlaying = true;
+                    startReader();
+                }
+            }, 700);
+        }
     }
 
     private int time = 500;
@@ -259,14 +376,16 @@ public class ReaderActivity extends AppCompatActivity implements View.OnClickLis
         protected String doInBackground(String... strings) {
             while (isPlaying) {
                 try {
-                    String currentWord = mViewingBook.getNextWord().getWord();
+                    String currentWord = mViewingBook.getCurrentWord().getWord();
                     int sleepPlus = 0;
                     if(currentWord.length()>12){
                         sleepPlus = 200;
-                    }
-                    if(currentWord.contains(".") || currentWord.contains("-") || currentWord.contains(",")
+                    }if(currentWord.contains(".")){
+                        sleepPlus =500;
+                    }else
+                    if(currentWord.contains("-") || currentWord.contains(",")
                             || currentWord.contains(";")|| currentWord.contains(":")|| currentWord.contains("!")){
-                        sleepPlus = 200;
+                        sleepPlus = 300;
                     }
                     Thread.sleep(time+sleepPlus);
                     publishProgress("");
@@ -292,7 +411,12 @@ public class ReaderActivity extends AppCompatActivity implements View.OnClickLis
         if(!isDownSwipingBoi){
             mViewingBook.getNextWordAndUpdatePos();
 
-            currentWordTextView.setText(mViewingBook.getCurrentWord().getWord());
+            String nextWord = mViewingBook.getCurrentWord().getWord();
+            String finalWord = nextWord.replaceAll("\n"," ")
+                    .replaceAll("\t"," ")
+                    .replaceAll("-","");
+            currentWordTextView.setText(finalWord);
+
             percentageBarView.setProgress(mViewingBook.percentageForCompletion());
             bookProgressValueTextView.setText(mViewingBook.percentageForCompletion()+"%");
 
@@ -813,28 +937,6 @@ public class ReaderActivity extends AppCompatActivity implements View.OnClickLis
         anim.setInterpolator(new LinearOutSlowInInterpolator());
         bookDetailsRelativeLayout.startAnimation(anim);
 
-//        bookDetailsRelativeLayout.animate().translationY(0).setDuration(mAnimationDuration).setInterpolator(new LinearOutSlowInInterpolator())
-//                .setListener(new Animator.AnimatorListener() {
-//                    @Override
-//                    public void onAnimationStart(Animator animator) {
-//
-//                    }
-//
-//                    @Override
-//                    public void onAnimationEnd(Animator animator) {
-//                        bookDetailsRelativeLayout.setTranslationY(0);
-//                    }
-//
-//                    @Override
-//                    public void onAnimationCancel(Animator animator) {
-//
-//                    }
-//
-//                    @Override
-//                    public void onAnimationRepeat(Animator animator) {
-//
-//                    }
-//                }).start();
 
         restartBookLinearLayout.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -852,29 +954,6 @@ public class ReaderActivity extends AppCompatActivity implements View.OnClickLis
 
     private void hideBookOptions(){
         isBookOptionsShowing = false;
-//        bookDetailsRelativeLayout.animate().translationY(DatabaseManager.dpToPx(115)).setDuration(mAnimationDuration).setInterpolator(new LinearOutSlowInInterpolator())
-//                .setListener(new Animator.AnimatorListener() {
-//                    @Override
-//                    public void onAnimationStart(Animator animator) {
-//
-//                    }
-//
-//                    @Override
-//                    public void onAnimationEnd(Animator animator) {
-//                        bookOptionsLinearLayout.setVisibility(View.GONE);
-//                        bookDetailsRelativeLayout.setTranslationY(0);
-//                    }
-//
-//                    @Override
-//                    public void onAnimationCancel(Animator animator) {
-//
-//                    }
-//
-//                    @Override
-//                    public void onAnimationRepeat(Animator animator) {
-//
-//                    }
-//                }).start();
 
         Animation anim = new Animation(){
             @Override
