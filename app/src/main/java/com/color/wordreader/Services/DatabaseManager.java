@@ -33,6 +33,8 @@ public class DatabaseManager {
     private final String WORD_COUNT = "WORD_COUNT";
     private final String WORD_COUNT_LONG = "WORD_COUNT_LONG";
     private final String DARK_MODE = "DARK_MODE";
+    private final String LAST_LOADED_PAGE = "LAST_LOADED_PAGE";
+    private final String NUMBER_OF_TOTAL_PAGES = "NUMBER_OF_TOTAL_PAGES";
 
     public DatabaseManager(Context context){
         this.mContext = context;
@@ -50,6 +52,8 @@ public class DatabaseManager {
                 Bitmap cover = decodeBitmapFromStorage(pref.getString(i+BOOK_COVER,""));
                 Long currentWord = pref.getLong(i+CURRENT_BOOK_WORD,0);
                 Long size = pref.getLong(i+BOOK_SIZE,0);
+                Long lastPrintedPage = pref.getLong(i+LAST_LOADED_PAGE,0);
+                Long totalPagesToPrint = pref.getLong(i+NUMBER_OF_TOTAL_PAGES,0);
                 String path = pref.getString(i+BOOK_PATH,"");
                 int position = pref.getInt(i+BOOK_POSITION,i);
                 List<Word> bookWords = new ArrayList<>();
@@ -68,6 +72,8 @@ public class DatabaseManager {
                 loadedBook.setBookName(title);
                 loadedBook.setBookUrl(url);
                 loadedBook.setBookPath(path);
+                loadedBook.setNumberOfPagesToLoad((int)(long)totalPagesToPrint);
+                loadedBook.setLastPrintedPage((int)(long)lastPrintedPage);
                 loadedBook.setCurrentWordId(currentWord);
                 loadedBook.setStoragePos(position);
                 loadedBook.setSentenceWords(bookWords);
@@ -88,6 +94,8 @@ public class DatabaseManager {
         Bitmap cover = decodeBitmapFromStorage(pref.getString(i+BOOK_COVER,""));
         Long currentWord = pref.getLong(i+CURRENT_BOOK_WORD,0);
         Long size = pref.getLong(i+BOOK_SIZE,0);
+        Long lastPrintedPage = pref.getLong(i+LAST_LOADED_PAGE,0);
+        Long totalPagesToPrint = pref.getLong(i+NUMBER_OF_TOTAL_PAGES,0);
         String path = pref.getString(i+BOOK_PATH,"");
         int position = pref.getInt(i+BOOK_POSITION,i);
         List<Word> bookWords = new ArrayList<>();
@@ -105,6 +113,8 @@ public class DatabaseManager {
         loadedBook.setBookCover(cover);
         loadedBook.setBookName(title);
         loadedBook.setBookUrl(url);
+        loadedBook.setNumberOfPagesToLoad((int)(long)totalPagesToPrint);
+        loadedBook.setLastPrintedPage((int)(long)lastPrintedPage);
         loadedBook.setBookPath(path);
         loadedBook.setCurrentWordId(currentWord);
         loadedBook.setStoragePos(position);
@@ -117,6 +127,8 @@ public class DatabaseManager {
         SharedPreferences pref = mContext.getSharedPreferences(ALL_BOOKS, MODE_PRIVATE);
         SharedPreferences.Editor editor = pref.edit();
         editor.putLong(book.getStoragePos()+CURRENT_BOOK_WORD, book.getCurrentWordId());
+        editor.putLong(book.getStoragePos()+LAST_LOADED_PAGE, book.getLastPrintedPage());
+        editor.putLong(book.getStoragePos()+NUMBER_OF_TOTAL_PAGES, book.getNumberOfPagesToLoad());
         editor.apply();
 
     }
@@ -160,6 +172,10 @@ public class DatabaseManager {
         editor.putString(newNumberOfBooksStored+BOOK_COVER, encodeBitmapForStorage(book.getBookCover()));
         editor.putLong(newNumberOfBooksStored+CURRENT_BOOK_WORD, book.getCurrentWordId());
         editor.putLong(newNumberOfBooksStored+BOOK_SIZE, book.getSentenceWords().size());
+
+        editor.putLong(newNumberOfBooksStored+LAST_LOADED_PAGE, book.getLastPrintedPage());
+        editor.putLong(newNumberOfBooksStored+NUMBER_OF_TOTAL_PAGES, book.getNumberOfPagesToLoad());
+
         editor.putString(newNumberOfBooksStored+BOOK_PATH,book.getBookPath());
         editor.putInt(newNumberOfBooksStored+BOOK_POSITION, newNumberOfBooksStored);
 

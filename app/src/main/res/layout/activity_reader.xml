@@ -27,6 +27,27 @@
                 android:scaleY="0.6"
                 android:layout_height="wrap_content"/>
 
+            <TextView
+                android:id="@+id/animatorWordTextView"
+                android:layout_width="wrap_content"
+                android:text="Home"
+                android:visibility="gone"
+                android:layout_centerInParent="true"
+                android:translationY="-50dp"
+                android:textSize="35sp"
+                android:layout_height="wrap_content"/>
+
+            <TextView
+                android:id="@+id/animatorWord2TextView"
+                android:layout_width="wrap_content"
+                android:text="Home"
+                android:visibility="gone"
+                android:layout_centerInParent="true"
+                android:translationY="-50dp"
+                android:textSize="35sp"
+                android:layout_height="wrap_content"/>
+
+
             <ImageView
                 android:id="@+id/playImageView"
                 android:layout_centerInParent="true"
@@ -283,6 +304,7 @@
             android:layout_height="400dp"/>
 
         <View
+            android:visibility="gone"
             android:id="@+id/restartSentenceView"
             android:layout_width="80dp"
             android:layout_alignParentLeft="true"
@@ -292,10 +314,19 @@
             android:layout_height="150dp"/>
 
         <View
+            android:visibility="gone"
             android:id="@+id/skipNextSentenceView"
             android:layout_width="80dp"
             android:layout_alignParentRight="true"
             android:layout_marginRight="30dp"
+            android:layout_marginBottom="100dp"
+            android:layout_alignParentBottom="true"
+            android:layout_height="150dp"/>
+
+        <View
+            android:id="@+id/forwardBookSentenceView"
+            android:layout_width="250dp"
+            android:layout_centerHorizontal="true"
             android:layout_marginBottom="100dp"
             android:layout_alignParentBottom="true"
             android:layout_height="150dp"/>
@@ -311,22 +342,35 @@
             android:textSize="14sp"
             android:layout_height="wrap_content"/>
 
+        <TextView
+            android:id="@+id/wordsRemainingTextView"
+            android:alpha="0"
+            android:layout_width="wrap_content"
+            android:text="603 words/ 102,690 \n E.T.F 3:25"
+            android:gravity="center"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="20dp"
+            android:textSize="14sp"
+            android:layout_height="wrap_content"/>
+
         <ImageView
             android:id="@+id/forwardImageView"
             android:layout_width="50dp"
-            android:alpha="0"
+            android:visibility="gone"
             android:background="@drawable/ic_action_fast_forward"
             android:layout_centerInParent="true"
-            android:translationY="50dp"
+            android:translationY="20dp"
+            android:translationX="70dp"
             android:layout_height="50dp"/>
 
         <ImageView
             android:id="@+id/rewindImageView"
-            android:alpha="0"
             android:layout_width="50dp"
+            android:visibility="gone"
             android:background="@drawable/ic_action_fast_rewind"
             android:layout_centerInParent="true"
-            android:translationY="50dp"
+            android:translationY="20dp"
+            android:translationX="-70dp"
             android:layout_height="50dp"/>
 
         <com.google.android.material.card.MaterialCardView

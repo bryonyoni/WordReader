@@ -28,6 +28,28 @@
                 android:scaleY="0.6"
                 android:layout_height="wrap_content"/>
 
+            <TextView
+                android:id="@+id/animatorWordTextView"
+                android:layout_width="wrap_content"
+                android:text="Home"
+                android:visibility="gone"
+                android:textColor="@color/text_background_dark"
+                android:layout_centerInParent="true"
+                android:translationY="-50dp"
+                android:textSize="35sp"
+                android:layout_height="wrap_content"/>
+
+            <TextView
+                android:id="@+id/animatorWord2TextView"
+                android:layout_width="wrap_content"
+                android:text="Home"
+                android:textColor="@color/text_background_dark"
+                android:visibility="gone"
+                android:layout_centerInParent="true"
+                android:translationY="-50dp"
+                android:textSize="35sp"
+                android:layout_height="wrap_content"/>
+
             <ImageView
                 android:id="@+id/playImageView"
                 android:layout_centerInParent="true"
@@ -283,6 +305,7 @@
             android:layout_height="400dp"/>
 
         <View
+            android:visibility="gone"
             android:id="@+id/restartSentenceView"
             android:layout_width="80dp"
             android:layout_alignParentLeft="true"
@@ -292,10 +315,19 @@
             android:layout_height="150dp"/>
 
         <View
+            android:visibility="gone"
             android:id="@+id/skipNextSentenceView"
             android:layout_width="80dp"
             android:layout_alignParentRight="true"
             android:layout_marginRight="30dp"
+            android:layout_marginBottom="100dp"
+            android:layout_alignParentBottom="true"
+            android:layout_height="150dp"/>
+
+        <View
+            android:id="@+id/forwardBookSentenceView"
+            android:layout_width="250dp"
+            android:layout_centerHorizontal="true"
             android:layout_marginBottom="100dp"
             android:layout_alignParentBottom="true"
             android:layout_height="150dp"/>

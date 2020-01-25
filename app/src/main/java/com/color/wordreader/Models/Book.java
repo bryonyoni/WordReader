@@ -14,6 +14,9 @@ public class Book {
     private List<Word> mBookWords = new ArrayList<>();
     private Long mCurrentWordId = 0L;
 
+    private int numberOfPagesToLoad = 0;
+    private int lastPrintedPage = 0;
+
     public Book(){}
 
     public Book(List<Word> allWords){
@@ -28,6 +31,10 @@ public class Book {
 
     public void setSentenceWords(List<Word> mSentenceWords) {
         this.mBookWords = mSentenceWords;
+    }
+
+    public void addSentencewords(List<Word> mSentenceWords){
+        this.mBookWords.addAll(mSentenceWords);
     }
 
 
@@ -132,5 +139,25 @@ public class Book {
 
     public void setBookPath(String mBookPath) {
         this.mBookPath = mBookPath;
+    }
+
+    public int getNumberOfPagesToLoad() {
+        return numberOfPagesToLoad;
+    }
+
+    public void setNumberOfPagesToLoad(int numberOfPagesToLoad) {
+        this.numberOfPagesToLoad = numberOfPagesToLoad;
+    }
+
+    public int getLastPrintedPage() {
+        return lastPrintedPage;
+    }
+
+    public void setLastPrintedPage(int lastPrintedPage) {
+        this.lastPrintedPage = lastPrintedPage;
+    }
+
+    public Word getLastWord() {
+        return mBookWords.get((int)(long)mCurrentWordId-1);
     }
 }

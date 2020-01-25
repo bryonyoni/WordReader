@@ -2,6 +2,7 @@ package com.color.wordreader.Activities;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.interpolator.view.animation.FastOutLinearInInterpolator;
 import androidx.interpolator.view.animation.LinearOutSlowInInterpolator;
 
 import android.animation.Animator;
@@ -35,9 +36,14 @@ import com.color.wordreader.Models.Word;
 import com.color.wordreader.R;
 import com.color.wordreader.Services.DatabaseManager;
 import com.google.android.material.card.MaterialCardView;
+import com.itextpdf.text.pdf.PdfReader;
+import com.itextpdf.text.pdf.parser.PdfTextExtractor;
 
 import java.io.File;
+import java.io.IOException;
 import java.text.NumberFormat;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 
 import butterknife.Bind;
@@ -99,6 +105,7 @@ public class ReaderActivity extends AppCompatActivity implements View.OnClickLis
         setTranslationPos();
         setBooksData();
         setTouchActivator();
+        setFastForwardTouchActivator();
     }
 
 
@@ -181,15 +188,17 @@ public class ReaderActivity extends AppCompatActivity implements View.OnClickLis
         int timeTaken = (int)(totalWords/wordCount);
         int hrs = timeTaken/60;
         int min = timeTaken%60;
+        String minString = min<10 ?  "0" + min : min + "";
 
         if(hrs!=0){
             if(hrs==1){
-                wordsRemainingTextView.setText(String.format("%s / %s words \n %d:%d min", format.format(wordsSoFar), format.format(totalWords), hrs, min));
 
-            }else wordsRemainingTextView.setText(String.format("%s / %s words \n %d:%d min", format.format(wordsSoFar), format.format(totalWords), hrs, min));
+                wordsRemainingTextView.setText(String.format("%s / %s words \n %d:%s min", format.format(wordsSoFar), format.format(totalWords), hrs, minString));
+
+            }else wordsRemainingTextView.setText(String.format("%s / %s words \n %d:%s min", format.format(wordsSoFar), format.format(totalWords), hrs, minString));
 
         }else{
-            wordsRemainingTextView.setText(String.format("%s / %s words \n %d min", format.format(wordsSoFar), format.format(totalWords), min));
+            wordsRemainingTextView.setText(String.format("%s / %s words \n %s min", format.format(wordsSoFar), format.format(totalWords), minString));
         }
 
 
@@ -408,13 +417,14 @@ public class ReaderActivity extends AppCompatActivity implements View.OnClickLis
     }
 
     private void nextWord(){
-        if(!isDownSwipingBoi){
+        if(!isDownSwipingBoi && isPlaying){
             mViewingBook.getNextWordAndUpdatePos();
 
             String nextWord = mViewingBook.getCurrentWord().getWord();
             String finalWord = nextWord.replaceAll("\n"," ")
                     .replaceAll("\t"," ")
-                    .replaceAll("-","");
+                    .replaceAll("-","")
+                    .replaceAll(" ", "");
             currentWordTextView.setText(finalWord);
 
             percentageBarView.setProgress(mViewingBook.percentageForCompletion());
@@ -424,6 +434,13 @@ public class ReaderActivity extends AppCompatActivity implements View.OnClickLis
             new DatabaseManager(mContext).addReadCount();
             if(mViewingBook.isLastWord()){
                 pauseWord();
+            }
+
+            if(mViewingBook.getNumberOfPagesToLoad()!=0) {
+                if (mViewingBook.getCurrentWordId() + 200 >= mViewingBook.getNumberOfPagesToLoad()) {
+                    loadMoreWordsIfYouCan();
+                    new DatabaseManager(mContext).updateBookProgress(mViewingBook);
+                }
             }
         }
 
@@ -649,6 +666,27 @@ public class ReaderActivity extends AppCompatActivity implements View.OnClickLis
 
         new DatabaseManager(mContext).setReadingSpeed(time, translationPos);
         oldIVal = 0;
+
+        int wordsSoFar = (int)(long)mViewingBook.getCurrentWordId();
+        int totalWords = mViewingBook.getSentenceWords().size();
+
+        NumberFormat format = NumberFormat.getInstance(Locale.US);
+        double wordCount = 60000/time;
+        int timeTaken = (int)(totalWords/wordCount);
+        int hrs = timeTaken/60;
+        int min = timeTaken%60;
+        String minString = min<10 ?  "0" + min : min + "";
+
+        if(hrs!=0){
+            if(hrs==1){
+
+                wordsRemainingTextView.setText(String.format("%s / %s words \n %d:%s min", format.format(wordsSoFar), format.format(totalWords), hrs, minString));
+
+            }else wordsRemainingTextView.setText(String.format("%s / %s words \n %d:%s min", format.format(wordsSoFar), format.format(totalWords), hrs, minString));
+
+        }else{
+            wordsRemainingTextView.setText(String.format("%s / %s words \n %s min", format.format(wordsSoFar), format.format(totalWords), minString));
+        }
     }
 
 
@@ -727,7 +765,6 @@ public class ReaderActivity extends AppCompatActivity implements View.OnClickLis
 
         return 0;
     }
-
 
     private void pulseFastForward(){
         final float alpha = 1f;
@@ -972,7 +1009,6 @@ public class ReaderActivity extends AppCompatActivity implements View.OnClickLis
         skipNextSentenceView.setVisibility(View.VISIBLE);
         separatorView.setVisibility(View.GONE);
     }
-
     @Override
     public void onBackPressed(){
         if(isBookOptionsShowing){
@@ -1011,5 +1047,235 @@ public class ReaderActivity extends AppCompatActivity implements View.OnClickLis
         }
 
     }
+
+
+
+    private void loadMoreWordsIfYouCan(){
+        int lastPrintedPage = mViewingBook.getLastPrintedPage();
+        String pdfUrl = mViewingBook.getBookUrl();
+        try {
+            String parsedText="";
+            PdfReader reader = new PdfReader(pdfUrl);
+            int n = reader.getNumberOfPages();
+
+            if(n<lastPrintedPage+5){
+                loadSpecificPages(parsedText,reader,lastPrintedPage,n);
+            }else{
+                loadSpecificPages(parsedText,reader,lastPrintedPage,lastPrintedPage+5);
+            }
+            reader.close();
+
+
+            loadAllWordsAndSentences(parsedText);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private String loadSpecificPages(String parsedText, PdfReader reader, int lastprintedPage, int finalPrintedPage) throws IOException {
+        for (int i = lastprintedPage; i <=finalPrintedPage ; i++) {
+            parsedText   = new StringBuilder()
+                    .append(parsedText)
+                    .append(PdfTextExtractor.getTextFromPage(reader, i + 1).trim())
+                    .append("\n")
+                    .toString(); //Extracting the content from the different pages
+        }
+        return parsedText;
+    }
+
+    private void loadAllWordsAndSentences(String everything){
+        List<Word> allTheWordsForLoadedBook = new ArrayList<>();
+
+        String currentWord = "";
+        for (int i = 0; i < everything.length(); i++){
+            char c = everything.charAt(i);
+
+            if(c==' '){
+                //the word is over,
+                if(!currentWord.equals("")) {
+
+                    Word word = new Word();
+                    word.setWord(currentWord.trim());
+                    allTheWordsForLoadedBook.add(word);
+                }
+                currentWord = "";
+            }else{
+                currentWord = String.format("%s%s", currentWord, Character.toString(c));
+            }
+        }
+
+        mViewingBook.addSentencewords(allTheWordsForLoadedBook);
+        Log.e("MainActivity", "We've got: "+ allTheWordsForLoadedBook.size());
+    }
+
+
+
+
+    private int x_deltaBoi;
+    private boolean isRightSwipingBoi = false;
+    @Bind(R.id.forwardBookSentenceView) View forwardBookSentenceView;
+    @Bind(R.id.animatorWordTextView) TextView animatorWordTextView;
+    @Bind(R.id.animatorWord2TextView) TextView animatorWord2TextView;
+
+    private GestureDetector swipeLeftGestureDetector;
+
+    private void setFastForwardTouchActivator(){
+        swipeLeftGestureDetector = new GestureDetector(this, new MySwipeFastForwardMainGestureListener());
+
+        forwardBookSentenceView.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View view, MotionEvent motionEvent) {
+                if (swipeLeftGestureDetector.onTouchEvent(motionEvent)) {
+                    return true;
+                }
+                if (motionEvent.getAction() == MotionEvent.ACTION_UP) {
+                    if (isRightSwipingBoi) {
+                        isRightSwipingBoi = false;
+
+                    }
+                    stopWinding();
+                }
+
+                return false;
+            }
+        });
+
+    }
+
+    class MySwipeFastForwardMainGestureListener extends GestureDetector.SimpleOnGestureListener {
+
+        @Override
+        public boolean onDown(MotionEvent event) {
+            final int X= (int) event.getRawX();
+
+            RelativeLayout.LayoutParams lParams = (RelativeLayout.LayoutParams) forwardBookSentenceView.getLayoutParams();
+            x_deltaBoi = X - lParams.leftMargin;
+
+            pauseWithoutShowing();
+            isRightSwipingBoi = true;
+            isRewinding = true;
+
+            windWordsBackgroundTask v = new windWordsBackgroundTask();
+            v.execute();
+
+            return true;
+        }
+
+        @Override
+        public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
+            final int X = (int) e2.getRawX();
+
+            updateRewindSpeed(X-x_deltaBoi);
+            return true;
+        }
+
+        @Override
+        public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
+            isRightSwipingBoi = false;
+            return false;
+
+        }
+
+    }
+
+
+    private void updateRewindSpeed(int val){
+        Log.e(TAG," rewind speed: "+ val);
+
+        int finalValue = 400-Math.abs(val);
+        if(val<0){
+            forwardImageView.setVisibility(View.GONE);
+            rewindImageView.setVisibility(View.VISIBLE);
+            windDuration = -(finalValue);
+        }else{
+            forwardImageView.setVisibility(View.VISIBLE);
+            rewindImageView.setVisibility(View.GONE);
+            windDuration = finalValue;
+        }
+
+        Log.e(TAG," wind Duration speed: "+ windDuration);
+    }
+
+    private void pauseWithoutShowing(){
+        isPlaying = false;
+        new DatabaseManager(mContext).updateBookProgress(mViewingBook);
+
+    }
+
+    private void fastForwardWords(String nextWord){
+        currentWordTextView.setText(nextWord);
+
+    }
+
+    private void stopWinding(){
+        Log.e(TAG, "Stopping winding");
+        isRewinding = false;
+        isPlaying = true;
+        startReader();
+
+        forwardImageView.setVisibility(View.GONE);
+        rewindImageView.setVisibility(View.GONE);
+    }
+
+    private int windDuration = 400;
+    private boolean isRewinding = false;
+    private class windWordsBackgroundTask extends AsyncTask<String, String, String> {
+
+        @Override
+        protected String doInBackground(String... strings) {
+            while (isRewinding) {
+                try {
+                    Thread.sleep(Math.abs(windDuration));
+                    publishProgress("");
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+            return "executed";
+        }
+
+        @Override
+        protected void onProgressUpdate(String... text) {
+            if(windDuration<0 && mViewingBook.getCurrentWordId()-1>0 ){
+                fastForwardWords(mViewingBook.getNextWord().getWord());
+                mViewingBook.setCurrentWordId(mViewingBook.getCurrentWordId()-1);
+            }else{
+                if(mViewingBook.getCurrentWordId()+1 != mViewingBook.getSentenceWords().size())
+                fastForwardWords(mViewingBook.getLastWord().getWord());
+                mViewingBook.setCurrentWordId(mViewingBook.getCurrentWordId()+1);
+            }
+            new DatabaseManager(mContext).updateBookProgress(mViewingBook);
+        }
+
+        @Override
+        protected void onPostExecute(String result) {
+            String nextWord = mViewingBook.getCurrentWord().getWord();
+            String finalWord = nextWord.replaceAll("\n"," ")
+                    .replaceAll("\t"," ")
+                    .replaceAll("-","")
+                    .replaceAll(" ", "");
+            currentWordTextView.setText(finalWord);
+
+            percentageBarView.setProgress(mViewingBook.percentageForCompletion());
+            bookProgressValueTextView.setText(mViewingBook.percentageForCompletion()+"%");
+
+            bookProgressBigProgressBar.setProgress(mViewingBook.percentageForCompletion());
+            new DatabaseManager(mContext).addReadCount();
+            if(mViewingBook.isLastWord()){
+                pauseWord();
+            }
+
+            if(mViewingBook.getNumberOfPagesToLoad()!=0) {
+                if (mViewingBook.getCurrentWordId() + 200 >= mViewingBook.getNumberOfPagesToLoad()) {
+                    loadMoreWordsIfYouCan();
+                    new DatabaseManager(mContext).updateBookProgress(mViewingBook);
+                }
+            }
+        }
+
+    }
+
+
 
 }

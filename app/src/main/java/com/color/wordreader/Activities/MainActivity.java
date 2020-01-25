@@ -43,6 +43,7 @@ import com.itextpdf.text.pdf.PdfReader;
 import com.itextpdf.text.pdf.parser.PdfTextExtractor;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -315,18 +316,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 
 
-
+    private int numberOfPagesToLoad = 0;
+    private int lastPrintedPage = 0;
     private String getTextFromFile(String allPdfFiles){
         try {
             String parsedText="";
             PdfReader reader = new PdfReader(allPdfFiles);
             int n = reader.getNumberOfPages();
-            for (int i = 0; i <n ; i++) {
-                parsedText   = new StringBuilder()
-                        .append(parsedText)
-                        .append(PdfTextExtractor.getTextFromPage(reader, i + 1).trim())
-//                        .append("\n")
-                        .toString(); //Extracting the content from the different pages
+            numberOfPagesToLoad = n;
+
+            if(n<lastPrintedPage+5 ){
+                loadSpecificPages(parsedText,reader,lastPrintedPage,n);
+            }else{
+                loadSpecificPages(parsedText,reader,lastPrintedPage,lastPrintedPage+5);
             }
             reader.close();
             return parsedText;
@@ -335,6 +337,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             e.printStackTrace();
             return "";
         }
+    }
+
+    private String loadSpecificPages(String parsedText, PdfReader reader, int lastprintedPage, int finalPrintedPage) throws IOException {
+        for (int i = lastprintedPage; i <=finalPrintedPage ; i++) {
+            parsedText   = new StringBuilder()
+                    .append(parsedText)
+                    .append(PdfTextExtractor.getTextFromPage(reader, i + 1).trim())
+                    .append("\n")
+                    .toString(); //Extracting the content from the different pages
+        }
+        return parsedText;
     }
 
     @Override
@@ -395,6 +408,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             newBook.setBookPath(selectedImagePath);
             newBook.setBookName(pdfBookName);
             newBook.setBookCover(bookImage);
+            newBook.setLastPrintedPage(lastPrintedPage);
+            newBook.setNumberOfPagesToLoad(numberOfPagesToLoad);
 
             dialog.cancel();
             addBookToArrayListAndRecyclerView(newBook);
