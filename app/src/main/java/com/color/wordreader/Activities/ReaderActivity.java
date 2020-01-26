@@ -193,9 +193,9 @@ public class ReaderActivity extends AppCompatActivity implements View.OnClickLis
         if(hrs!=0){
             if(hrs==1){
 
-                wordsRemainingTextView.setText(String.format("%s / %s words \n %d:%s min", format.format(wordsSoFar), format.format(totalWords), hrs, minString));
+                wordsRemainingTextView.setText(String.format("%s / %s words \n %d:%s", format.format(wordsSoFar), format.format(totalWords), hrs, minString));
 
-            }else wordsRemainingTextView.setText(String.format("%s / %s words \n %d:%s min", format.format(wordsSoFar), format.format(totalWords), hrs, minString));
+            }else wordsRemainingTextView.setText(String.format("%s / %s words \n %d:%s", format.format(wordsSoFar), format.format(totalWords), hrs, minString));
 
         }else{
             wordsRemainingTextView.setText(String.format("%s / %s words \n %s min", format.format(wordsSoFar), format.format(totalWords), minString));
@@ -338,9 +338,9 @@ public class ReaderActivity extends AppCompatActivity implements View.OnClickLis
 
         if(hrs!=0){
             if(hrs==1){
-                wordsRemainingTextView.setText(String.format("%s / %s words \n %d:%d min", format.format(wordsSoFar), format.format(totalWords), hrs, min));
+                wordsRemainingTextView.setText(String.format("%s / %s words \n %d:%d", format.format(wordsSoFar), format.format(totalWords), hrs, min));
 
-            }else wordsRemainingTextView.setText(String.format("%s / %s words \n %d:%d min", format.format(wordsSoFar), format.format(totalWords), hrs, min));
+            }else wordsRemainingTextView.setText(String.format("%s / %s words \n %d:%d", format.format(wordsSoFar), format.format(totalWords), hrs, min));
 
         }else{
             wordsRemainingTextView.setText(String.format("%s / %s words \n %d min", format.format(wordsSoFar), format.format(totalWords), min));
@@ -680,9 +680,9 @@ public class ReaderActivity extends AppCompatActivity implements View.OnClickLis
         if(hrs!=0){
             if(hrs==1){
 
-                wordsRemainingTextView.setText(String.format("%s / %s words \n %d:%s min", format.format(wordsSoFar), format.format(totalWords), hrs, minString));
+                wordsRemainingTextView.setText(String.format("%s / %s words \n %d:%s", format.format(wordsSoFar), format.format(totalWords), hrs, minString));
 
-            }else wordsRemainingTextView.setText(String.format("%s / %s words \n %d:%s min", format.format(wordsSoFar), format.format(totalWords), hrs, minString));
+            }else wordsRemainingTextView.setText(String.format("%s / %s words \n %d:%s", format.format(wordsSoFar), format.format(totalWords), hrs, minString));
 
         }else{
             wordsRemainingTextView.setText(String.format("%s / %s words \n %s min", format.format(wordsSoFar), format.format(totalWords), minString));
@@ -1105,7 +1105,13 @@ public class ReaderActivity extends AppCompatActivity implements View.OnClickLis
             }
         }
 
+        int lastLoadedWordPos = mViewingBook.getSentenceWords().size()-1;
         mViewingBook.addSentencewords(allTheWordsForLoadedBook);
+
+        if(!allTheWordsForLoadedBook.isEmpty()) {
+            new DatabaseManager(mContext).storeBooksNewlyLoadedWords(mViewingBook, lastLoadedWordPos);
+        }
+
         Log.e("MainActivity", "We've got: "+ allTheWordsForLoadedBook.size());
     }
 
@@ -1183,15 +1189,31 @@ public class ReaderActivity extends AppCompatActivity implements View.OnClickLis
     private void updateRewindSpeed(int val){
         Log.e(TAG," rewind speed: "+ val);
 
-        int finalValue = 400-Math.abs(val);
-        if(val<0){
-            forwardImageView.setVisibility(View.GONE);
-            rewindImageView.setVisibility(View.VISIBLE);
-            windDuration = -(finalValue);
-        }else{
-            forwardImageView.setVisibility(View.VISIBLE);
-            rewindImageView.setVisibility(View.GONE);
-            windDuration = finalValue;
+        if(Math.abs(val)<400) {
+            int finalValue = 400 - Math.abs(val);
+
+            float alpha = (float)Math.abs(val)/(float)400;
+            int translation = (int)(((float)Math.abs(val)/(float)400)*100);
+
+            if (val < 0) {
+                //were rewinding
+                forwardImageView.setVisibility(View.GONE);
+                rewindImageView.setVisibility(View.VISIBLE);
+
+                rewindImageView.setAlpha(alpha);
+                rewindImageView.setTranslationX(DatabaseManager.dpToPx(-70)-translation);
+
+                windDuration = -(finalValue);
+            } else {
+                //were forwarding
+                forwardImageView.setVisibility(View.VISIBLE);
+                rewindImageView.setVisibility(View.GONE);
+
+                forwardImageView.setAlpha(alpha);
+                forwardImageView.setTranslationX(DatabaseManager.dpToPx(70)+translation);
+
+                windDuration = finalValue;
+            }
         }
 
         Log.e(TAG," wind Duration speed: "+ windDuration);
@@ -1212,10 +1234,48 @@ public class ReaderActivity extends AppCompatActivity implements View.OnClickLis
         Log.e(TAG, "Stopping winding");
         isRewinding = false;
         isPlaying = true;
-        startReader();
 
-        forwardImageView.setVisibility(View.GONE);
-        rewindImageView.setVisibility(View.GONE);
+
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                startReader();
+            }
+        },900);
+
+        forwardImageView.animate().alpha(0f).translationX(DatabaseManager.dpToPx(70)).setInterpolator(new LinearOutSlowInInterpolator())
+                .setDuration(mAnimationDuration).start();
+
+        rewindImageView.animate().alpha(0f).translationX(DatabaseManager.dpToPx(-70)).setInterpolator(new LinearOutSlowInInterpolator())
+                .setDuration(mAnimationDuration).setListener(new Animator.AnimatorListener() {
+            @Override
+            public void onAnimationStart(Animator animator) {
+
+            }
+
+            @Override
+            public void onAnimationEnd(Animator animator) {
+                forwardImageView.setVisibility(View.GONE);
+                rewindImageView.setVisibility(View.GONE);
+
+                rewindImageView.setAlpha(0f);
+                rewindImageView.setTranslationX(DatabaseManager.dpToPx(-70));
+
+                forwardImageView.setAlpha(0f);
+                forwardImageView.setTranslationX(DatabaseManager.dpToPx(70));
+            }
+
+            @Override
+            public void onAnimationCancel(Animator animator) {
+
+            }
+
+            @Override
+            public void onAnimationRepeat(Animator animator) {
+
+            }
+        }).start();
+
     }
 
     private int windDuration = 400;

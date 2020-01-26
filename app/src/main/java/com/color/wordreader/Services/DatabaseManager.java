@@ -189,6 +189,17 @@ public class DatabaseManager {
 
     }
 
+    public void storeBooksNewlyLoadedWords(Book book, int lastLoadedWordPosition){
+        SharedPreferences pref = mContext.getSharedPreferences(ALL_BOOKS, MODE_PRIVATE);
+        SharedPreferences.Editor editor = pref.edit();
+
+        for(int i= lastLoadedWordPosition+1; i<book.getSentenceWords().size(); i++){
+            Word word = book.getSentenceWords().get(i);
+            editor.putString(book.getStoragePos()+BOOK_WORDS+book.getSentenceWords().indexOf(word), word.getWord());
+        }
+        editor.apply();
+    }
+
     private String encodeBitmapForStorage(Bitmap bitmap){
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         bitmap.compress(Bitmap.CompressFormat.JPEG,100,baos);

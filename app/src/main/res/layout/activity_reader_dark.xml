@@ -358,19 +358,23 @@
         <ImageView
             android:id="@+id/forwardImageView"
             android:layout_width="50dp"
+            android:visibility="visible"
             android:alpha="0"
             android:background="@drawable/ic_action_fast_forward_dark"
             android:layout_centerInParent="true"
-            android:translationY="50dp"
+            android:translationY="20dp"
+            android:translationX="70dp"
             android:layout_height="50dp"/>
 
         <ImageView
             android:id="@+id/rewindImageView"
-            android:alpha="0"
             android:layout_width="50dp"
+            android:visibility="visible"
+            android:alpha="0"
             android:background="@drawable/ic_action_fast_rewind_dark"
             android:layout_centerInParent="true"
-            android:translationY="50dp"
+            android:translationY="20dp"
+            android:translationX="-70dp"
             android:layout_height="50dp"/>
 
         <com.google.android.material.card.MaterialCardView

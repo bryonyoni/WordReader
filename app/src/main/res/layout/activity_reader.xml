@@ -356,7 +356,8 @@
         <ImageView
             android:id="@+id/forwardImageView"
             android:layout_width="50dp"
-            android:visibility="gone"
+            android:visibility="visible"
+            android:alpha="0"
             android:background="@drawable/ic_action_fast_forward"
             android:layout_centerInParent="true"
             android:translationY="20dp"
@@ -366,7 +367,8 @@
         <ImageView
             android:id="@+id/rewindImageView"
             android:layout_width="50dp"
-            android:visibility="gone"
+            android:visibility="visible"
+            android:alpha="0"
             android:background="@drawable/ic_action_fast_rewind"
             android:layout_centerInParent="true"
             android:translationY="20dp"
