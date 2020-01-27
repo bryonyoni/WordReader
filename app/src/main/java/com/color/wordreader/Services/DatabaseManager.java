@@ -197,6 +197,8 @@ public class DatabaseManager {
             Word word = book.getSentenceWords().get(i);
             editor.putString(book.getStoragePos()+BOOK_WORDS+book.getSentenceWords().indexOf(word), word.getWord());
         }
+        editor.putLong(book.getStoragePos()+LAST_LOADED_PAGE, book.getLastPrintedPage());
+
         editor.apply();
     }
 

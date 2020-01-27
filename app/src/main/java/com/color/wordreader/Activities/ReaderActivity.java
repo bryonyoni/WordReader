@@ -12,6 +12,7 @@ import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -179,27 +180,7 @@ public class ReaderActivity extends AppCompatActivity implements View.OnClickLis
             }
         }).start();
 
-        int wordsSoFar = (int)(long)mViewingBook.getCurrentWordId();
-        int totalWords = mViewingBook.getSentenceWords().size();
-
-        NumberFormat format = NumberFormat.getInstance(Locale.US);
-
-        double wordCount = 60000/time;
-        int timeTaken = (int)(totalWords/wordCount);
-        int hrs = timeTaken/60;
-        int min = timeTaken%60;
-        String minString = min<10 ?  "0" + min : min + "";
-
-        if(hrs!=0){
-            if(hrs==1){
-
-                wordsRemainingTextView.setText(String.format("%s / %s words \n %d:%s", format.format(wordsSoFar), format.format(totalWords), hrs, minString));
-
-            }else wordsRemainingTextView.setText(String.format("%s / %s words \n %d:%s", format.format(wordsSoFar), format.format(totalWords), hrs, minString));
-
-        }else{
-            wordsRemainingTextView.setText(String.format("%s / %s words \n %s min", format.format(wordsSoFar), format.format(totalWords), minString));
-        }
+        setWordsRemainingTextView();
 
 
     }
@@ -326,6 +307,10 @@ public class ReaderActivity extends AppCompatActivity implements View.OnClickLis
                     }
                 }).start();
 
+        setWordsRemainingTextView();
+    }
+
+    private void setWordsRemainingTextView(){
         int wordsSoFar = (int)(long)mViewingBook.getCurrentWordId();
         int totalWords = mViewingBook.getSentenceWords().size();
 
@@ -416,6 +401,7 @@ public class ReaderActivity extends AppCompatActivity implements View.OnClickLis
 
     }
 
+    private boolean isLoadingMoreWords = false;
     private void nextWord(){
         if(!isDownSwipingBoi && isPlaying){
             mViewingBook.getNextWordAndUpdatePos();
@@ -437,8 +423,10 @@ public class ReaderActivity extends AppCompatActivity implements View.OnClickLis
             }
 
             if(mViewingBook.getNumberOfPagesToLoad()!=0) {
-                if (mViewingBook.getCurrentWordId() + 200 >= mViewingBook.getNumberOfPagesToLoad()) {
-                    loadMoreWordsIfYouCan();
+                if (!isLoadingMoreWords && mViewingBook.getCurrentWordId() + 200 >= mViewingBook.getSentenceWords().size()) {
+//                    loadMoreWordsIfYouCan();
+                    isLoadingMoreWords = true;
+                    new loadMoreOfTheBookBackgoundTask().execute();
                     new DatabaseManager(mContext).updateBookProgress(mViewingBook);
                 }
             }
@@ -667,26 +655,7 @@ public class ReaderActivity extends AppCompatActivity implements View.OnClickLis
         new DatabaseManager(mContext).setReadingSpeed(time, translationPos);
         oldIVal = 0;
 
-        int wordsSoFar = (int)(long)mViewingBook.getCurrentWordId();
-        int totalWords = mViewingBook.getSentenceWords().size();
-
-        NumberFormat format = NumberFormat.getInstance(Locale.US);
-        double wordCount = 60000/time;
-        int timeTaken = (int)(totalWords/wordCount);
-        int hrs = timeTaken/60;
-        int min = timeTaken%60;
-        String minString = min<10 ?  "0" + min : min + "";
-
-        if(hrs!=0){
-            if(hrs==1){
-
-                wordsRemainingTextView.setText(String.format("%s / %s words \n %d:%s", format.format(wordsSoFar), format.format(totalWords), hrs, minString));
-
-            }else wordsRemainingTextView.setText(String.format("%s / %s words \n %d:%s", format.format(wordsSoFar), format.format(totalWords), hrs, minString));
-
-        }else{
-            wordsRemainingTextView.setText(String.format("%s / %s words \n %s min", format.format(wordsSoFar), format.format(totalWords), minString));
-        }
+        setWordsRemainingTextView();
     }
 
 
@@ -1029,6 +998,7 @@ public class ReaderActivity extends AppCompatActivity implements View.OnClickLis
                         Toast.makeText(mContext, "Your book has been restarted.",Toast.LENGTH_SHORT).show();
 
                         setBooksData();
+                        hideBookOptions();
                         dialog.dismiss();
                     }
                 });
@@ -1058,11 +1028,15 @@ public class ReaderActivity extends AppCompatActivity implements View.OnClickLis
             PdfReader reader = new PdfReader(pdfUrl);
             int n = reader.getNumberOfPages();
 
-            if(n<lastPrintedPage+5){
-                loadSpecificPages(parsedText,reader,lastPrintedPage,n);
-            }else{
-                loadSpecificPages(parsedText,reader,lastPrintedPage,lastPrintedPage+5);
-            }
+//            if(n<lastPrintedPage+5){
+//                parsedText = loadSpecificPages(parsedText,reader,lastPrintedPage,n);
+//            }else{
+//                parsedText = loadSpecificPages(parsedText,reader,lastPrintedPage,lastPrintedPage+5);
+//            }
+
+            parsedText = loadSpecificPages(parsedText,reader,lastPrintedPage,mViewingBook.getNumberOfPagesToLoad());
+            mViewingBook.setLastPrintedPage(mViewingBook.getNumberOfPagesToLoad());
+
             reader.close();
 
 
@@ -1071,6 +1045,22 @@ public class ReaderActivity extends AppCompatActivity implements View.OnClickLis
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    private class loadMoreOfTheBookBackgoundTask extends AsyncTask<String, Void, String> {
+
+
+        @Override
+        protected String doInBackground(String... strings) {
+            loadMoreWordsIfYouCan();
+            return "executed";
+        }
+
+        @Override
+        protected void onPostExecute(String result) {
+            isLoadingMoreWords = false;
+        }
+
     }
 
     private String loadSpecificPages(String parsedText, PdfReader reader, int lastprintedPage, int finalPrintedPage) throws IOException {
@@ -1301,9 +1291,10 @@ public class ReaderActivity extends AppCompatActivity implements View.OnClickLis
                 fastForwardWords(mViewingBook.getNextWord().getWord());
                 mViewingBook.setCurrentWordId(mViewingBook.getCurrentWordId()-1);
             }else{
-                if(mViewingBook.getCurrentWordId()+1 != mViewingBook.getSentenceWords().size())
-                fastForwardWords(mViewingBook.getLastWord().getWord());
-                mViewingBook.setCurrentWordId(mViewingBook.getCurrentWordId()+1);
+                if(mViewingBook.getCurrentWordId()+1 != mViewingBook.getSentenceWords().size()) {
+                    fastForwardWords(mViewingBook.getLastWord().getWord());
+                    mViewingBook.setCurrentWordId(mViewingBook.getCurrentWordId() + 1);
+                }
             }
             new DatabaseManager(mContext).updateBookProgress(mViewingBook);
         }

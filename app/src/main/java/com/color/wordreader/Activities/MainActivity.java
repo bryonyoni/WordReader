@@ -51,6 +51,7 @@ import butterknife.Bind;
 import butterknife.ButterKnife;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener{
+    private final String TAG = "MainActivity";
     private int PICK_IMAGE = 6969;
     private int PICK_PDF = 1234;
     private Context mContext;
@@ -325,12 +326,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             int n = reader.getNumberOfPages();
             numberOfPagesToLoad = n;
 
-            if(n<lastPrintedPage+5 ){
-                loadSpecificPages(parsedText,reader,lastPrintedPage,n);
+            if(n<lastPrintedPage+10){
+                parsedText = loadSpecificPages(parsedText,reader,lastPrintedPage,n);
             }else{
-                loadSpecificPages(parsedText,reader,lastPrintedPage,lastPrintedPage+5);
+                parsedText = loadSpecificPages(parsedText,reader,lastPrintedPage,lastPrintedPage+10);
             }
             reader.close();
+            Log.e(TAG, "Loaded words: "+parsedText);
             return parsedText;
 
         } catch (Exception e) {
@@ -473,13 +475,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 
     private void addBookToArrayListAndRecyclerView(Book newBook){
-        try{
-            allMyBooks.add(newBook);
-            new DatabaseManager(mContext).storeNewBook(newBook);
-            loadAllBooksIntoRecyclerView();
-        }catch (Exception e){
-            e.printStackTrace();
-            Toast.makeText(mContext, "Something went wrong",Toast.LENGTH_SHORT).show();
+        if(!newBook.getSentenceWords().isEmpty()) {
+            try {
+                allMyBooks.add(newBook);
+                new DatabaseManager(mContext).storeNewBook(newBook);
+                loadAllBooksIntoRecyclerView();
+            } catch (Exception e) {
+                e.printStackTrace();
+                Toast.makeText(mContext, "Something went wrong", Toast.LENGTH_SHORT).show();
+            }
         }
 
     }
