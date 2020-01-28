@@ -235,6 +235,7 @@
                             android:text="App Version"/>
 
                         <TextView
+                            android:id="@+id/versionTextView"
                             android:textSize="13sp"
                             android:alpha="0.8"
                             android:textColor="@color/text_background_dark"

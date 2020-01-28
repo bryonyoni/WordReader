@@ -2,6 +2,8 @@ package com.color.wordreader.Activities;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.widget.TextView;
 
@@ -34,7 +36,8 @@ public class TweaksActivity extends AppCompatActivity {
 
         if(count< 1000L){
             rankTextView.setText("Beginner.");
-        }else if(count< 10000L){
+        }
+        else if(count< 10000L){
             rankTextView.setText("Amature.");
         }else if(count< 100000L){
             rankTextView.setText("Pro-Amateur.");
@@ -42,12 +45,23 @@ public class TweaksActivity extends AppCompatActivity {
             rankTextView.setText("Pro.");
         }else if(count< 10000000L){
             rankTextView.setText("Master.");
-        }else if(count< 100000000L){
+        }
+        else if(count< 100000000L){
             rankTextView.setText("Super-Human.");
         }else if(count< 1000000000L){
             rankTextView.setText("Titan.");
         }else{
             rankTextView.setText("God.");
+        }
+
+        try {
+            PackageInfo pInfo = getApplicationContext().getPackageManager().getPackageInfo(getPackageName(), 0);
+            String version = pInfo.versionName;
+
+            TextView versionTextView = findViewById(R.id.versionTextView);
+            versionTextView.setText("Official Version "+version);
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
         }
     }
 }

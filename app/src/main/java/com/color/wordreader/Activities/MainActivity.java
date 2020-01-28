@@ -35,9 +35,11 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.color.wordreader.Adapters.MyBooksRecyclerAdapter;
+import com.color.wordreader.Constants;
 import com.color.wordreader.Models.Book;
 import com.color.wordreader.Models.Word;
 import com.color.wordreader.R;
+import com.color.wordreader.Services.BookLoaderService;
 import com.color.wordreader.Services.DatabaseManager;
 import com.itextpdf.text.pdf.PdfReader;
 import com.itextpdf.text.pdf.parser.PdfTextExtractor;
@@ -81,6 +83,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         settingsImageView.setOnClickListener(this);
         nightImageView.setOnClickListener(this);
         loadMyBooks();
+
     }
 
     private void loadMyBooks(){
@@ -328,8 +331,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             if(n<lastPrintedPage+10){
                 parsedText = loadSpecificPages(parsedText,reader,lastPrintedPage,n);
+                lastPrintedPage+=n;
             }else{
                 parsedText = loadSpecificPages(parsedText,reader,lastPrintedPage,lastPrintedPage+10);
+                lastPrintedPage+=10;
             }
             reader.close();
             Log.e(TAG, "Loaded words: "+parsedText);

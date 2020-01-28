@@ -35,6 +35,9 @@ public class DatabaseManager {
     private final String DARK_MODE = "DARK_MODE";
     private final String LAST_LOADED_PAGE = "LAST_LOADED_PAGE";
     private final String NUMBER_OF_TOTAL_PAGES = "NUMBER_OF_TOTAL_PAGES";
+    private final String LOADING_BOOK = "LOADING_BOOK";
+
+
 
     public DatabaseManager(Context context){
         this.mContext = context;
@@ -123,6 +126,8 @@ public class DatabaseManager {
         return loadedBook;
     }
 
+
+
     public void updateBookProgress(Book book){
         SharedPreferences pref = mContext.getSharedPreferences(ALL_BOOKS, MODE_PRIVATE);
         SharedPreferences.Editor editor = pref.edit();
@@ -138,6 +143,8 @@ public class DatabaseManager {
         pref.edit().putInt(READING_SPEED,speed).apply();
         pref.edit().putInt(TRANS_POS, transPos).apply();
     }
+
+
 
     public int getReadingSpeed(){
         SharedPreferences pref = mContext.getSharedPreferences(READING_SPEED, MODE_PRIVATE);
@@ -156,6 +163,8 @@ public class DatabaseManager {
        }
         return transPos;
     }
+
+
 
     public void storeNewBook(Book book){
         SharedPreferences pref = mContext.getSharedPreferences(ALL_BOOKS, MODE_PRIVATE);
@@ -202,6 +211,8 @@ public class DatabaseManager {
         editor.apply();
     }
 
+
+
     private String encodeBitmapForStorage(Bitmap bitmap){
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         bitmap.compress(Bitmap.CompressFormat.JPEG,100,baos);
@@ -243,5 +254,16 @@ public class DatabaseManager {
     public void setDarkMode(boolean mode){
         SharedPreferences pref = mContext.getSharedPreferences(DARK_MODE, MODE_PRIVATE);
         pref.edit().putBoolean(DARK_MODE,mode).apply();
+    }
+
+
+    public void setLoadingBook(int loadingBookId, boolean isLoading){
+        SharedPreferences pref = mContext.getSharedPreferences(LOADING_BOOK, MODE_PRIVATE);
+        pref.edit().putBoolean(LOADING_BOOK+loadingBookId, isLoading).apply();
+    }
+
+    public boolean isLoadingBook(int loadingBookId){
+        SharedPreferences pref = mContext.getSharedPreferences(LOADING_BOOK, MODE_PRIVATE);
+        return pref.getBoolean(LOADING_BOOK+loadingBookId, false);
     }
 }

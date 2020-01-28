@@ -2,21 +2,16 @@ package com.color.wordreader.Activities;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.interpolator.view.animation.FastOutLinearInInterpolator;
 import androidx.interpolator.view.animation.LinearOutSlowInInterpolator;
 
 import android.animation.Animator;
-import android.animation.ObjectAnimator;
-import android.animation.TimeInterpolator;
-import android.content.ActivityNotFoundException;
+import android.app.ActivityManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.Handler;
 import android.util.Log;
 import android.view.GestureDetector;
@@ -40,7 +35,6 @@ import com.google.android.material.card.MaterialCardView;
 import com.itextpdf.text.pdf.PdfReader;
 import com.itextpdf.text.pdf.parser.PdfTextExtractor;
 
-import java.io.File;
 import java.io.IOException;
 import java.text.NumberFormat;
 import java.util.ArrayList;
@@ -107,6 +101,8 @@ public class ReaderActivity extends AppCompatActivity implements View.OnClickLis
         setBooksData();
         setTouchActivator();
         setFastForwardTouchActivator();
+
+        if(!mViewingBook.hasBookLoadedFully()) startLoadMoreWordsIfYouCan();
     }
 
 
@@ -182,6 +178,7 @@ public class ReaderActivity extends AppCompatActivity implements View.OnClickLis
 
         setWordsRemainingTextView();
 
+        if(!mViewingBook.hasBookLoadedFully())startLoadMoreWordsIfYouCan();
 
     }
 
@@ -280,8 +277,13 @@ public class ReaderActivity extends AppCompatActivity implements View.OnClickLis
 
         percentageBarView.setProgress(mViewingBook.percentageForCompletion());
         bookProgressValueTextView.setText(mViewingBook.percentageForCompletion()+"%");
-
         bookProgressBigProgressBar.setProgress(mViewingBook.percentageForCompletion());
+
+        if(!mViewingBook.hasBookLoadedFully()){
+            percentageBarView.setProgress(0);
+            bookProgressValueTextView.setText("0%");
+            bookProgressBigProgressBar.setProgress(0);
+        }
 
 
         wordsRemainingTextView.animate().alpha(1f).setDuration(mAnimationDuration)
@@ -330,6 +332,10 @@ public class ReaderActivity extends AppCompatActivity implements View.OnClickLis
         }else{
             wordsRemainingTextView.setText(String.format("%s / %s words \n %d min", format.format(wordsSoFar), format.format(totalWords), min));
         }
+
+        if(!mViewingBook.hasBookLoadedFully()){
+            wordsRemainingTextView.setText("");
+        }
     }
 
     @Override
@@ -344,8 +350,15 @@ public class ReaderActivity extends AppCompatActivity implements View.OnClickLis
     wordTimerBackgroundTask w;
     private void startReader(){
 //        if(w!=null) w.cancel(false);
+
+        if(isLoadingMoreWords){
+            isLoadingMoreWords = false;
+//            bL.cancel(true);
+        }
+
         w = new wordTimerBackgroundTask();
         w.execute();
+
     }
 
     private void restartReader(){
@@ -424,11 +437,14 @@ public class ReaderActivity extends AppCompatActivity implements View.OnClickLis
 
             if(mViewingBook.getNumberOfPagesToLoad()!=0) {
                 if (!isLoadingMoreWords && mViewingBook.getCurrentWordId() + 200 >= mViewingBook.getSentenceWords().size()) {
-//                    loadMoreWordsIfYouCan();
-                    isLoadingMoreWords = true;
-                    new loadMoreOfTheBookBackgoundTask().execute();
-                    new DatabaseManager(mContext).updateBookProgress(mViewingBook);
+                    startLoadMoreWordsIfYouCan();
                 }
+            }
+
+            if(!mViewingBook.hasBookLoadedFully()){
+                percentageBarView.setProgress(0);
+                bookProgressBigProgressBar.setProgress(0);
+                bookProgressValueTextView.setText("0%");
             }
         }
 
@@ -572,7 +588,17 @@ public class ReaderActivity extends AppCompatActivity implements View.OnClickLis
 
 
             speedTextView.setText((int)percentage+"%");
-            time = (int) (Constants.MIN_READING_TIME + (zeroToOne *(Constants.MAX_READING_TIME - Constants.MIN_READING_TIME)));
+            double maxWordSpeed = 60000/Constants.MIN_READING_TIME;
+            double minWordSpeed = 60000/Constants.MAX_READING_TIME;
+
+            int wordSpeed = (int)(minWordSpeed + ((1-zeroToOne) *(maxWordSpeed - minWordSpeed)));
+            int time = (int)((double)60000/(double)wordSpeed);
+
+            Log.e(TAG,"New Word Speed is: "+wordSpeed);
+            Log.e(TAG, "Its respective time is: "+time);
+
+//            time = (int) (Constants.MIN_READING_TIME + (zeroToOne *(Constants.MAX_READING_TIME - Constants.MIN_READING_TIME)));
+            this.time = time;
         }else{
             Log.e(TAG, "Value of i doesnt fit bounds 0-"+DatabaseManager.dpToPx(300));
 
@@ -1019,62 +1045,108 @@ public class ReaderActivity extends AppCompatActivity implements View.OnClickLis
     }
 
 
+    @Bind(R.id.loadingMoreBookTextView) TextView loadingMoreBookTextView;
+    loadMoreOfTheBookBackgroundTask bL;
+    private void startLoadMoreWordsIfYouCan(){
+        isLoadingMoreWords = true;
+        bL = new loadMoreOfTheBookBackgroundTask();
+        bL.execute();
+//        if(!new DatabaseManager(mContext).isLoadingBook(mViewingBook.getStoragePos())) {
+//            Intent intent = new Intent(this, BookLoaderService.class);
+//            intent.putExtra(Constants.BOOK_ID, mViewingBook.getStoragePos());
+//            startService(intent);
+//            new DatabaseManager(mContext).setLoadingBook(mViewingBook.getStoragePos(), true);
+//        }
 
-    private void loadMoreWordsIfYouCan(){
-        int lastPrintedPage = mViewingBook.getLastPrintedPage();
-        String pdfUrl = mViewingBook.getBookUrl();
-        try {
-            String parsedText="";
-            PdfReader reader = new PdfReader(pdfUrl);
-            int n = reader.getNumberOfPages();
-
-//            if(n<lastPrintedPage+5){
-//                parsedText = loadSpecificPages(parsedText,reader,lastPrintedPage,n);
-//            }else{
-//                parsedText = loadSpecificPages(parsedText,reader,lastPrintedPage,lastPrintedPage+5);
+//        LocalBroadcastManager.getInstance(mContext).registerReceiver(new BroadcastReceiver() {
+//            @Override
+//            public void onReceive(Context context, Intent intent) {
+//                loadingMoreBookTextView.setVisibility(View.GONE);
+//                isLoadingMoreWords = false;
+//
+//                mViewingBook = new DatabaseManager(mContext).loadSpecificBook(mViewingBook.getStoragePos());
 //            }
-
-            parsedText = loadSpecificPages(parsedText,reader,lastPrintedPage,mViewingBook.getNumberOfPagesToLoad());
-            mViewingBook.setLastPrintedPage(mViewingBook.getNumberOfPagesToLoad());
-
-            reader.close();
-
-
-            loadAllWordsAndSentences(parsedText);
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+//        },new IntentFilter(Constants.FINISHED_LOADING_BOOK));
+        loadingMoreBookTextView.setVisibility(View.VISIBLE);
     }
 
-    private class loadMoreOfTheBookBackgoundTask extends AsyncTask<String, Void, String> {
+    private boolean isMyServiceRunning(Class<?> serviceClass) {
+        ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
+            if (serviceClass.getName().equals(service.service.getClassName())) {
+                return true;
+            }
+        }
+        return false;
+    }
 
+    private class loadMoreOfTheBookBackgroundTask extends AsyncTask<String, String, String> {
 
         @Override
         protected String doInBackground(String... strings) {
-            loadMoreWordsIfYouCan();
+
+            int lastPrintedPage = mViewingBook.getLastPrintedPage();
+            String pdfUrl = mViewingBook.getBookPath();
+            Log.e(TAG,"Last Printed page: "+lastPrintedPage);
+            Log.e(TAG,"Total pages to print: "+mViewingBook.getNumberOfPagesToLoad());
+            Log.e(TAG, "Book url: "+pdfUrl);
+            if(mViewingBook.getLastPrintedPage()==0){
+                mViewingBook.setLastPrintedPage(1);
+            }
+            try {
+                PdfReader reader = new PdfReader(pdfUrl);
+                int n = reader.getNumberOfPages();
+
+
+                for(int i = mViewingBook.getLastPrintedPage(); i <= mViewingBook.getNumberOfPagesToLoad(); i++){
+                    if(isLoadingMoreWords) {
+                        publishProgress(i + "");
+
+                        String parsedText = loadSpecificPage(reader, i);
+                        mViewingBook.setLastPrintedPage(i);
+
+                        int lastLoadedWordPos = mViewingBook.getSentenceWords().size() - 1;
+                        List<Word> allTheWordsForLoadedBook = loadAllWordsAndSentences(parsedText);
+
+                        if (!allTheWordsForLoadedBook.isEmpty()) {
+                            mViewingBook.addSentencewords(allTheWordsForLoadedBook);
+                            new DatabaseManager(mContext).storeBooksNewlyLoadedWords(mViewingBook, lastLoadedWordPos);
+                        }
+                    }else break;
+                }
+                reader.close();
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
             return "executed";
+        }
+
+        @Override
+        protected void onProgressUpdate(String... text) {
+            String page = text[0];
+            loadingMoreBookTextView.setText("Loading page "+page);
         }
 
         @Override
         protected void onPostExecute(String result) {
             isLoadingMoreWords = false;
+            new DatabaseManager(mContext).updateBookProgress(mViewingBook);
+            if(mViewingBook.hasBookLoadedFully())loadingMoreBookTextView.setVisibility(View.GONE);
         }
 
     }
 
-    private String loadSpecificPages(String parsedText, PdfReader reader, int lastprintedPage, int finalPrintedPage) throws IOException {
-        for (int i = lastprintedPage; i <=finalPrintedPage ; i++) {
-            parsedText   = new StringBuilder()
-                    .append(parsedText)
-                    .append(PdfTextExtractor.getTextFromPage(reader, i + 1).trim())
-                    .append("\n")
-                    .toString(); //Extracting the content from the different pages
-        }
-        return parsedText;
+    private String loadSpecificPage(PdfReader reader, int pageNumber) throws IOException {
+        String newParsedText   = new StringBuilder()
+                .append(PdfTextExtractor.getTextFromPage(reader, pageNumber).trim())
+                .append("\n")
+                .toString(); //Extracting the content from the different pages
+
+        return newParsedText;
     }
 
-    private void loadAllWordsAndSentences(String everything){
+    private List<Word> loadAllWordsAndSentences(String everything){
         List<Word> allTheWordsForLoadedBook = new ArrayList<>();
 
         String currentWord = "";
@@ -1095,16 +1167,10 @@ public class ReaderActivity extends AppCompatActivity implements View.OnClickLis
             }
         }
 
-        int lastLoadedWordPos = mViewingBook.getSentenceWords().size()-1;
-        mViewingBook.addSentencewords(allTheWordsForLoadedBook);
+        Log.e("BookLoaderService", "We've got: "+ allTheWordsForLoadedBook.size());
+        return allTheWordsForLoadedBook;
 
-        if(!allTheWordsForLoadedBook.isEmpty()) {
-            new DatabaseManager(mContext).storeBooksNewlyLoadedWords(mViewingBook, lastLoadedWordPos);
-        }
-
-        Log.e("MainActivity", "We've got: "+ allTheWordsForLoadedBook.size());
     }
-
 
 
 
@@ -1176,6 +1242,7 @@ public class ReaderActivity extends AppCompatActivity implements View.OnClickLis
     }
 
 
+
     private void updateRewindSpeed(int val){
         Log.e(TAG," rewind speed: "+ val);
 
@@ -1209,7 +1276,9 @@ public class ReaderActivity extends AppCompatActivity implements View.OnClickLis
         Log.e(TAG," wind Duration speed: "+ windDuration);
     }
 
+    private boolean isToResumePlayingAfterWind = false;
     private void pauseWithoutShowing(){
+        isToResumePlayingAfterWind = isPlaying;
         isPlaying = false;
         new DatabaseManager(mContext).updateBookProgress(mViewingBook);
 
@@ -1223,13 +1292,14 @@ public class ReaderActivity extends AppCompatActivity implements View.OnClickLis
     private void stopWinding(){
         Log.e(TAG, "Stopping winding");
         isRewinding = false;
-        isPlaying = true;
+        isPlaying = isToResumePlayingAfterWind;
 
 
         new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {
-                startReader();
+                if(isToResumePlayingAfterWind) startReader();
+                isToResumePlayingAfterWind = false;
             }
         },900);
 
@@ -1318,8 +1388,8 @@ public class ReaderActivity extends AppCompatActivity implements View.OnClickLis
             }
 
             if(mViewingBook.getNumberOfPagesToLoad()!=0) {
-                if (mViewingBook.getCurrentWordId() + 200 >= mViewingBook.getNumberOfPagesToLoad()) {
-                    loadMoreWordsIfYouCan();
+                if (!isLoadingMoreWords && mViewingBook.getCurrentWordId() + 200 >= mViewingBook.getNumberOfPagesToLoad()) {
+                    new loadMoreOfTheBookBackgroundTask().execute();
                     new DatabaseManager(mContext).updateBookProgress(mViewingBook);
                 }
             }

@@ -11,6 +11,15 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
+        <TextView
+            android:id="@+id/loadingMoreBookTextView"
+            android:layout_width="wrap_content"
+            android:visibility="gone"
+            android:text="We're loading the rest of the book..."
+            android:textSize="13sp"
+            android:layout_centerHorizontal="true"
+            android:layout_height="wrap_content"/>
+
         <RelativeLayout
             android:layout_width="match_parent"
             android:translationY="-30dp"
@@ -93,7 +102,6 @@
                             android:id="@+id/bookThumbnailImageView"
                             android:layout_width="50dp"
                             android:scaleType="fitXY"
-                            android:alpha="0.8"
                             android:background="@drawable/image_gradient"
                             android:layout_height="50dp"/>
 

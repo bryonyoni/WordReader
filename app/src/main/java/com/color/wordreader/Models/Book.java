@@ -160,4 +160,10 @@ public class Book {
     public Word getLastWord() {
         return mBookWords.get((int)(long)mCurrentWordId-1);
     }
+
+
+    public boolean hasBookLoadedFully(){
+        if(lastPrintedPage < numberOfPagesToLoad) return false;
+        return true;
+    }
 }

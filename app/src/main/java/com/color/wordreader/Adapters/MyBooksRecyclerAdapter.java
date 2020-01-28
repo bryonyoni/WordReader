@@ -28,6 +28,7 @@ public class MyBooksRecyclerAdapter extends RecyclerView.Adapter<MyBooksRecycler
     public MyBooksRecyclerAdapter(List<Book> books, Activity acc){
         this.mActivity = acc;
         this.mBooks = books;
+        
     }
 
     @NonNull
