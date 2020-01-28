@@ -181,7 +181,6 @@ public class DatabaseManager {
         editor.putString(newNumberOfBooksStored+BOOK_COVER, encodeBitmapForStorage(book.getBookCover()));
         editor.putLong(newNumberOfBooksStored+CURRENT_BOOK_WORD, book.getCurrentWordId());
         editor.putLong(newNumberOfBooksStored+BOOK_SIZE, book.getSentenceWords().size());
-
         editor.putLong(newNumberOfBooksStored+LAST_LOADED_PAGE, book.getLastPrintedPage());
         editor.putLong(newNumberOfBooksStored+NUMBER_OF_TOTAL_PAGES, book.getNumberOfPagesToLoad());
 
@@ -207,6 +206,7 @@ public class DatabaseManager {
             editor.putString(book.getStoragePos()+BOOK_WORDS+book.getSentenceWords().indexOf(word), word.getWord());
         }
         editor.putLong(book.getStoragePos()+LAST_LOADED_PAGE, book.getLastPrintedPage());
+        editor.putLong(book.getStoragePos()+BOOK_SIZE, book.getSentenceWords().size());
 
         editor.apply();
     }
